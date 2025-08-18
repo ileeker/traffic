@@ -4,36 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
+return new class extends Migration {
+    public function up(): void
     {
         Schema::create('domains', function (Blueprint $table) {
-            $table->id();
-            $table->string('domain', 255)->unique();
-            $table->integer('current_ranking')->nullable();
-            $table->json('ranking_data')->nullable();
-            $table->timestamp('last_updated')->nullable();
-            $table->timestamps();
-            
-            // 索引
-            $table->index('domain');
-            $table->index('last_updated');
-            $table->index('current_ranking');
+            $table->increments('id');                                 // INT AUTO_INCREMENT
+            $table->string('domain', 255)->unique();                   // 域名（唯一）
+            $table->integer('current_ranking')->nullable();            // 当前排名
+            $table->json('ranking_data')->nullable();                  // 历史数据(JSON)
+            $table->timestamp('last_updated')->nullable();             // 最后更新时间
+            $table->timestamp('created_at')->useCurrent();             // 创建时间（仅 created_at）
+            // 如需 updated_at：$table->timestamps(); 并删除上两行时间列
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists('domains');
     }
