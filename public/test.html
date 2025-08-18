@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角度测量工具 (含半圆形量角器)</title>
+    <!-- 引入依赖 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://css.gg/css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 原有样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin-bottom: 15px;
+        }
+        
+        .upload-section {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .upload-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .upload-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .upload-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 0;
+            position: relative; /* 必须为 relative，以便绝对定位的子元素正确显示 */
+        }
+        
+        #canvas {
+            border: 2px solid #333;
+            background-color: white;
+            cursor: crosshair;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 100%;
+            max-height: 100%;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #angle-display {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            padding: 15px 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions {
+            color: #666;
+            text-align: center;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            line-height: 1.6;
+        }
+
+        .touch-indicator {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 3px solid #3498db;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            animation: touchPulse 0.5s ease-out;
+        }
+
+        @keyframes touchPulse {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 10px 15px; }
+            .upload-section { gap: 8px; }
+            .upload-btn { padding: 10px 20px; font-size: 14px; }
+            .canvas-container { padding: 10px; }
+            .footer { padding: 15px; }
+            #angle-display { margin-bottom: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .upload-section { flex-direction: column; align-items: center; }
+            .upload-btn { width: 200px; padding: 12px 20px; }
+            .canvas-container { padding: 5px; }
+            .footer { padding: 10px; }
+        }
+
+        /* 量角器的样式 */
+        #protractor-wrapper {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            /* 更新: 缩小10% */
+            width: 360px; 
+            height: 185px;
+            cursor: grab;
+            /* 更新: 调整旋转中心 */
+            transform-origin: 180px 180px;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+        }
+
+        #protractor-svg {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .handle {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(29, 78, 216, 0.8); /* 默认蓝色 */
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .handle i {
+            color: white;
+            opacity: 0.9;
+        }
+
+        #drag-handle {
+            /* 更新: 适应新尺寸 */
+            top: 168px; /* 180 - 12 */
+            left: 168px; /* 180 - 12 */
+            cursor: grab;
+        }
+
+        #rotate-handle {
+            /* 更新: 移动到左侧0度位置 */
+            top: 168px;  /* 180 - 12 */
+            left: -3px; /* 9 - 12 */
+            cursor: crosshair;
+            background-color: rgba(220, 38, 38, 0.8); /* 红色 */
+        }
+
+        body.dragging, body.dragging * {
+            cursor: grabbing !important;
+        }
+        
+        body.rotating, body.rotating * {
+            cursor: crosshair !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>角度测量工具</h1>
+    </div>
+    
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+
+        <!-- 量角器的HTML结构 -->
+        <div id="protractor-wrapper">
+            <div id="drag-handle" class="handle"><i class="gg-move"></i></div>
+            <div id="rotate-handle" class="handle"><i class="gg-sync"></i></div>
+            <!-- 更新: 调整SVG尺寸 */ -->
+            <svg id="protractor-svg" viewBox="0 0 360 185">
+                <defs>
+                    <style id="protractor-style">
+                        /* 更新: 颜色改为黑色 */
+                        .protractor-body { fill: transparent; stroke: #000; stroke-width: 1.5; }
+                        .protractor-line { stroke: #000; stroke-width: 0.5; }
+                        .protractor-line-5 { stroke: #000; stroke-width: 0.75; }
+                        .protractor-line-10 { stroke: #000; stroke-width: 1.25; }
+                        .protractor-radial-line { stroke: #000; stroke-width: 0.5; stroke-dasharray: 2 2; }
+                        .protractor-text { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; fill: #000; text-anchor: middle; user-select: none; }
+                    </style>
+                </defs>
+                <!-- 更新: 调整路径和中心点以适应新尺寸 -->
+                <path class="protractor-body" d="M 9 180 A 171 171 0 0 1 351 180 L 9 180 Z"></path>
+                <circle cx="180" cy="180" r="3" fill="#000"/>
+                <path d="M 180 175 L 180 185 M 175 180 L 185 180" stroke="#000" stroke-width="1.5"/>
+                <g id="markings" transform="translate(180, 180)"></g>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div id="angle-display">角度: 90.0°</div>
+        <div class="upload-section">
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+            <button onclick="document.getElementById('imageUpload').click()" class="upload-btn">
+                📁 上传图片
+            </button>
+            <button onclick="downloadImage()" class="upload-btn" style="background-color: #2ecc71;">
+                💾 下载结果
+            </button>
+            <button id="toggleCanvasToolBtn" onclick="toggleCanvasTool()" class="upload-btn" style="background-color: #16a085;">
+                📐 隐藏画布工具
+            </button>
+            <button id="toggleProtractorBtn" onclick="toggleProtractor()" class="upload-btn" style="background-color: #8e44ad;">
+                📏 隐藏量角器
+            </button>
+        </div>
+        <div class="instructions">
+            <b>画布工具:</b> 拖动蓝色圆点或红色线条调整角度，拖动红色顶点移动。
+            <br>
+            <b>量角器:</b> 拖动中心蓝色圆点移动，拖动左侧红色圆点旋转。
+        </div>
+    </div>
+
+    <!-- 原有页面的脚本 -->
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const angleDisplay = document.getElementById('angle-display');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const TOUCH_RADIUS = isMobile ? 30 : 20;
+        const CIRCLE_RADIUS = isMobile ? 20 : 15;
+        const VERTEX_RADIUS = isMobile ? 12 : 8;
+        const LINE_WIDTH = isMobile ? 4 : 3;
+        const circles = [
+            { x: 100, y: 200, radius: CIRCLE_RADIUS, color: '#3498db', dragging: false },
+            { x: 300, y: 400, radius: CIRCLE_RADIUS, color: '#3498db', dragging: false }
+        ];
+        const vertex = { x: 300, y: 200 };
+        let mouseX = 0, mouseY = 0;
+        let backgroundImage = null, imageScale = 1, imageOffsetX = 0, imageOffsetY = 0;
+        let lastTouchTime = 0, touchFeedbackEnabled = true;
+        let isCanvasToolVisible = true; // 新增: 控制画布工具可见性
+
+        function drawBackgroundImage() {
+            if (backgroundImage) {
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.drawImage(backgroundImage, imageOffsetX, imageOffsetY, 
+                             backgroundImage.width * imageScale, 
+                             backgroundImage.height * imageScale);
+                ctx.restore();
+            }
+        }
+
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const containerRect = container.getBoundingClientRect();
+            const availableWidth = containerRect.width - 40;
+            const availableHeight = containerRect.height - 40;
+            canvas.width = Math.max(400, availableWidth);
+            canvas.height = Math.max(500, availableHeight);
+            if (circles[0].x === 100 && circles[0].y === 200) {
+                vertex.x = canvas.width * 0.5;
+                vertex.y = canvas.height * 0.5;
+                const lineLength = Math.min(canvas.width, canvas.height) * 0.3;
+                const angle1 = Math.PI;
+                circles[0].x = vertex.x + Math.cos(angle1) * lineLength;
+                circles[0].y = vertex.y + Math.sin(angle1) * lineLength;
+                const angle2 = Math.PI / 2;
+                circles[1].x = vertex.x + Math.cos(angle2) * lineLength;
+                circles[1].y = vertex.y + Math.sin(angle2) * lineLength;
+            }
+            draw();
+        }
+
+        function getGridSize() { return Math.max(15, Math.min(30, canvas.width / 40)); }
+
+        function drawGrid() {
+            const gridSize = getGridSize();
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+        }
+
+        function drawAngleLines() {
+            ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = LINE_WIDTH; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(vertex.x, vertex.y); ctx.lineTo(circles[0].x, circles[0].y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(vertex.x, vertex.y); ctx.lineTo(circles[1].x, circles[1].y); ctx.stroke();
+        }
+
+        function drawAngleArc() {
+            const angle1 = Math.atan2(circles[0].y - vertex.y, circles[0].x - vertex.x);
+            const angle2 = Math.atan2(circles[1].y - vertex.y, circles[1].x - vertex.x);
+            let startAngle = angle1, endAngle = angle2;
+            if (endAngle < startAngle) { endAngle += 2 * Math.PI; }
+            if (endAngle - startAngle > Math.PI) { [startAngle, endAngle] = [endAngle, startAngle + 2 * Math.PI]; }
+            ctx.strokeStyle = '#f39c12'; ctx.lineWidth = LINE_WIDTH;
+            ctx.beginPath(); ctx.arc(vertex.x, vertex.y, 50, startAngle, endAngle); ctx.stroke();
+            const midAngle = (startAngle + endAngle) / 2;
+            const textRadius = 70;
+            const textX = vertex.x + Math.cos(midAngle) * textRadius;
+            const textY = vertex.y + Math.sin(midAngle) * textRadius;
+            const angle = calculateAngle();
+            ctx.fillStyle = '#2c3e50'; ctx.font = `bold ${isMobile ? '18px' : '16px'} Arial`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(`${angle.toFixed(1)}°`, textX, textY);
+        }
+
+        function drawCircles() {
+            circles.forEach(circle => {
+                if (circle.dragging) {
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'; ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+                }
+                ctx.fillStyle = circle.color; ctx.beginPath(); ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(circle.x, circle.y, circle.radius - 4, 0, Math.PI * 2); ctx.fill();
+            });
+            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(vertex.x, vertex.y, VERTEX_RADIUS, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(vertex.x, vertex.y, VERTEX_RADIUS - 3, 0, Math.PI * 2); ctx.fill();
+        }
+
+        function calculateAngle() {
+            const angle1 = Math.atan2(circles[0].y - vertex.y, circles[0].x - vertex.x);
+            const angle2 = Math.atan2(circles[1].y - vertex.y, circles[1].x - vertex.x);
+            let angleDiff = Math.abs(angle2 - angle1);
+            if (angleDiff > Math.PI) { angleDiff = 2 * Math.PI - angleDiff; }
+            return angleDiff * 180 / Math.PI;
+        }
+
+        function updateAngleDisplay() { 
+            if (isCanvasToolVisible) {
+                angleDisplay.textContent = `角度: ${calculateAngle().toFixed(1)}°`; 
+            } else {
+                angleDisplay.textContent = '角度: --';
+            }
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackgroundImage(); 
+            drawGrid(); 
+            if (isCanvasToolVisible) {
+                drawAngleLines(); 
+                drawAngleArc(); 
+                drawCircles(); 
+            }
+            updateAngleDisplay();
+        }
+
+        function isPointInCircle(x, y, circle) {
+            const dx = x - circle.x, dy = y - circle.y, touchRadius = circle.radius + TOUCH_RADIUS;
+            return dx * dx + dy * dy <= touchRadius * touchRadius;
+        }
+        function isPointOnLine(x, y, startX, startY, endX, endY) {
+            const lineLength = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+            if (lineLength === 0) return false;
+            const t = Math.max(0, Math.min(1, ((x - startX) * (endX - startX) + (y - startY) * (endY - startY)) / (lineLength ** 2)));
+            const projection = { x: startX + t * (endX - startX), y: startY + t * (endY - startY) };
+            const distance = Math.sqrt((x - projection.x) ** 2 + (y - projection.y) ** 2);
+            return distance <= TOUCH_RADIUS;
+        }
+        function isPointOnAnyLine(x, y) {
+            if (isPointOnLine(x, y, vertex.x, vertex.y, circles[0].x, circles[0].y)) return 0;
+            if (isPointOnLine(x, y, vertex.x, vertex.y, circles[1].x, circles[1].y)) return 1;
+            return -1;
+        }
+        function isPointInVertex(x, y) {
+            const dx = x - vertex.x, dy = y - vertex.y, touchRadius = VERTEX_RADIUS + TOUCH_RADIUS;
+            return dx * dx + dy * dy <= touchRadius * touchRadius;
+        }
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        backgroundImage = img;
+                        const scaleX = canvas.width / img.width, scaleY = canvas.height / img.height;
+                        imageScale = Math.min(scaleX, scaleY);
+                        imageOffsetX = (canvas.width - img.width * imageScale) / 2;
+                        imageOffsetY = (canvas.height - img.height * imageScale) / 2;
+                        draw();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        let dragging = { circles: false, vertex: false, lineIndex: -1, startX: 0, startY: 0, initialVertexX: 0, initialVertexY: 0, initialCircles: [], touchIdentifier: null };
+        function getEventPosition(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches && e.touches.length > 0) {
+                if (dragging.touchIdentifier !== null) {
+                    for (let i = 0; i < e.touches.length; i++) {
+                        if (e.touches[i].identifier === dragging.touchIdentifier) {
+                            return { x: (e.touches[i].clientX - rect.left) * (canvas.width / rect.width), y: (e.touches[i].clientY - rect.top) * (canvas.height / rect.height) };
+                        }
+                    }
+                }
+                return { x: (e.touches[0].clientX - rect.left) * (canvas.width / rect.width), y: (e.touches[0].clientY - rect.top) * (canvas.height / rect.height) };
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                return { x: (e.changedTouches[0].clientX - rect.left) * (canvas.width / rect.width), y: (e.changedTouches[0].clientY - rect.top) * (canvas.height / rect.height) };
+            } else {
+                return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+            }
+        }
+        function showTouchFeedback(x, y) {
+            if (!isMobile || !touchFeedbackEnabled) return;
+            const indicator = document.createElement('div');
+            indicator.className = 'touch-indicator';
+            indicator.style.left = x + 'px'; indicator.style.top = y + 'px';
+            document.querySelector('.canvas-container').appendChild(indicator);
+            setTimeout(() => { indicator.remove(); }, 500);
+        }
+        let scrolling = { active: false, startY: 0, startScrollY: 0, lastY: 0, velocity: 0, animationId: null };
+        function isInteractiveElement(x, y) {
+            if (!isCanvasToolVisible) return false;
+            for (let circle of circles) { if (isPointInCircle(x, y, circle)) return true; }
+            if (isPointInVertex(x, y)) return true;
+            if (isPointOnAnyLine(x, y) !== -1) return true;
+            return false;
+        }
+        function handleStart(e) {
+            const pos = getEventPosition(e); mouseX = pos.x; mouseY = pos.y;
+            if (e.touches && e.touches.length > 0) { dragging.touchIdentifier = e.touches[0].identifier; }
+            const isInteractive = isInteractiveElement(mouseX, mouseY);
+            if (!isInteractive) {
+                if (e.touches) {
+                    scrolling.active = true; scrolling.startY = e.touches[0].clientY; scrolling.lastY = e.touches[0].clientY;
+                    scrolling.startScrollY = window.pageYOffset || document.documentElement.scrollTop; scrolling.velocity = 0;
+                    if (scrolling.animationId) { cancelAnimationFrame(scrolling.animationId); scrolling.animationId = null; }
+                } return;
+            }
+            e.preventDefault();
+            if (e.touches) { showTouchFeedback(e.touches[0].clientX, e.touches[0].clientY); }
+            let circleClicked = false;
+            circles.forEach(circle => {
+                if (isPointInCircle(mouseX, mouseY, circle)) {
+                    circle.dragging = true; dragging.circles = true; circleClicked = true; canvas.style.cursor = 'grabbing';
+                    if (navigator.vibrate) { navigator.vibrate(10); }
+                }
+            });
+            if (circleClicked) { draw(); return; }
+            if (isPointInVertex(mouseX, mouseY)) {
+                dragging.vertex = true; dragging.startX = mouseX; dragging.startY = mouseY;
+                dragging.initialVertexX = vertex.x; dragging.initialVertexY = vertex.y;
+                dragging.initialCircles = circles.map(c => ({ x: c.x, y: c.y }));
+                canvas.style.cursor = 'move'; if (navigator.vibrate) { navigator.vibrate(10); } return;
+            }
+            const lineIndex = isPointOnAnyLine(mouseX, mouseY);
+            if (lineIndex !== -1) {
+                dragging.lineIndex = lineIndex; dragging.startX = mouseX; dragging.startY = mouseY;
+                dragging.initialCircles = circles.map(c => ({ x: c.x, y: c.y }));
+                canvas.style.cursor = 'grab'; if (navigator.vibrate) { navigator.vibrate(10); } return;
+            }
+        }
+        function handleMove(e) {
+            const pos = getEventPosition(e); mouseX = pos.x; mouseY = pos.y;
+            if (scrolling.active && e.touches) {
+                const currentY = e.touches[0].clientY; const deltaY = scrolling.startY - currentY;
+                scrolling.velocity = currentY - scrolling.lastY; scrolling.lastY = currentY;
+                window.scrollTo(0, scrolling.startScrollY + deltaY); return;
+            }
+            if (dragging.circles || dragging.vertex || dragging.lineIndex !== -1) { e.preventDefault(); }
+            if (dragging.circles) {
+                circles.forEach(circle => { if (circle.dragging) { circle.x = mouseX; circle.y = mouseY; } }); draw();
+            } else if (dragging.vertex) {
+                const deltaX = mouseX - dragging.startX, deltaY = mouseY - dragging.startY;
+                vertex.x = dragging.initialVertexX + deltaX; vertex.y = dragging.initialVertexY + deltaY;
+                circles.forEach((circle, index) => { circle.x = dragging.initialCircles[index].x + deltaX; circle.y = dragging.initialCircles[index].y + deltaY; });
+                draw();
+            } else if (dragging.lineIndex !== -1) {
+                const targetCircle = circles[dragging.lineIndex];
+                const dx = mouseX - vertex.x, dy = mouseY - vertex.y;
+                const currentDistance = Math.sqrt(dx * dx + dy * dy);
+                const originalDistance = Math.sqrt((dragging.initialCircles[dragging.lineIndex].x - vertex.x) ** 2 + (dragging.initialCircles[dragging.lineIndex].y - vertex.y) ** 2);
+                if (currentDistance > 0) { const scale = originalDistance / currentDistance; targetCircle.x = vertex.x + dx * scale; targetCircle.y = vertex.y + dy * scale; }
+                draw();
+            } else if (!e.touches && !isMobile) {
+                let isHovering = false;
+                if (isCanvasToolVisible) {
+                    circles.forEach(circle => { if (isPointInCircle(mouseX, mouseY, circle)) { isHovering = true; canvas.style.cursor = 'grab'; } });
+                    if (!isHovering && isPointInVertex(mouseX, mouseY)) { isHovering = true; canvas.style.cursor = 'move'; }
+                    if (!isHovering && isPointOnAnyLine(mouseX, mouseY) !== -1) { isHovering = true; canvas.style.cursor = 'grab'; }
+                }
+                if (!isHovering) { canvas.style.cursor = 'crosshair'; }
+            }
+        }
+        function handleEnd(e) {
+            if (scrolling.active) {
+                scrolling.active = false;
+                if (Math.abs(scrolling.velocity) > 2) {
+                    let velocity = scrolling.velocity * 2;
+                    function inertiaScroll() {
+                        velocity *= 0.95;
+                        if (Math.abs(velocity) > 0.5) { window.scrollBy(0, -velocity); scrolling.animationId = requestAnimationFrame(inertiaScroll); } else { scrolling.animationId = null; }
+                    }
+                    inertiaScroll();
+                } return;
+            }
+            if (dragging.circles || dragging.vertex || dragging.lineIndex !== -1) { e.preventDefault(); }
+            circles.forEach(circle => { circle.dragging = false; });
+            dragging.circles = false; dragging.vertex = false; dragging.lineIndex = -1; dragging.touchIdentifier = null;
+            canvas.style.cursor = 'crosshair'; draw();
+        }
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+            canvas.addEventListener('touchmove', handleMove, { passive: false });
+            canvas.addEventListener('touchend', handleEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handleEnd, { passive: false });
+        }
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('mouseleave', handleEnd);
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        let isCanvasInteracting = false;
+        canvas.addEventListener('touchstart', () => { isCanvasInteracting = true; });
+        canvas.addEventListener('touchend', () => { setTimeout(() => { isCanvasInteracting = false; }, 100); });
+        document.addEventListener('gesturestart', (e) => { if (isCanvasInteracting) e.preventDefault(); });
+        document.addEventListener('gesturechange', (e) => { if (isCanvasInteracting) e.preventDefault(); });
+        
+        function finalizeDownload(canvasToDownload) {
+            const tempCtx = canvasToDownload.getContext('2d');
+            tempCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            tempCtx.font = '12px Arial';
+            tempCtx.textAlign = 'right';
+            tempCtx.textBaseline = 'bottom';
+            const date = new Date().toLocaleDateString('zh-CN');
+            const angleText = isCanvasToolVisible ? `角度: ${calculateAngle().toFixed(1)}° | ` : '';
+            tempCtx.fillText(`${angleText}${date}`, canvasToDownload.width - 10, canvasToDownload.height - 10);
+            
+            canvasToDownload.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const timestamp = new Date().getTime();
+                a.download = `角度测量_${timestamp}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                const downloadBtn = document.querySelector('button[onclick="downloadImage()"]');
+                const originalText = '💾 下载结果';
+                downloadBtn.textContent = '✅ 下载成功！';
+                
+                setTimeout(() => {
+                    downloadBtn.textContent = originalText;
+                }, 2000);
+            }, 'image/png', 1.0);
+        }
+
+        function downloadImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            if (backgroundImage) {
+                tempCtx.drawImage(backgroundImage, imageOffsetX, imageOffsetY, backgroundImage.width * imageScale, backgroundImage.height * imageScale);
+            }
+            
+            const gridSize = getGridSize();
+            tempCtx.strokeStyle = '#e0e0e0';
+            tempCtx.lineWidth = 1;
+            for (let x = 0; x <= tempCanvas.width; x += gridSize) {
+                tempCtx.beginPath(); tempCtx.moveTo(x, 0); tempCtx.lineTo(x, tempCanvas.height); tempCtx.stroke();
+            }
+            for (let y = 0; y <= tempCanvas.height; y += gridSize) {
+                tempCtx.beginPath(); tempCtx.moveTo(0, y); tempCtx.lineTo(tempCanvas.width, y); tempCtx.stroke();
+            }
+
+            if (isCanvasToolVisible) {
+                // Draw canvas tool elements
+                // ... (This logic is simplified, full redraw is complex, but for brevity we'll add it)
+                // Re-implementing draw logic for temp canvas
+                tempCtx.strokeStyle = '#e74c3c'; tempCtx.lineWidth = LINE_WIDTH; tempCtx.lineCap = 'round';
+                tempCtx.beginPath(); tempCtx.moveTo(vertex.x, vertex.y); tempCtx.lineTo(circles[0].x, circles[0].y); tempCtx.stroke();
+                tempCtx.beginPath(); tempCtx.moveTo(vertex.x, vertex.y); tempCtx.lineTo(circles[1].x, circles[1].y); tempCtx.stroke();
+                
+                const angle1 = Math.atan2(circles[0].y - vertex.y, circles[0].x - vertex.x);
+                const angle2 = Math.atan2(circles[1].y - vertex.y, circles[1].x - vertex.x);
+                let startAngle = angle1, endAngle = angle2;
+                if (endAngle < startAngle) { endAngle += 2 * Math.PI; }
+                if (endAngle - startAngle > Math.PI) { [startAngle, endAngle] = [endAngle, startAngle + 2 * Math.PI]; }
+                tempCtx.strokeStyle = '#f39c12'; tempCtx.lineWidth = LINE_WIDTH;
+                tempCtx.beginPath(); tempCtx.arc(vertex.x, vertex.y, 50, startAngle, endAngle); tempCtx.stroke();
+                const midAngle = (startAngle + endAngle) / 2; const textRadius = 70;
+                const textX = vertex.x + Math.cos(midAngle) * textRadius; const textY = vertex.y + Math.sin(midAngle) * textRadius;
+                const angle = calculateAngle();
+                tempCtx.fillStyle = '#2c3e50'; tempCtx.font = `bold ${isMobile ? '18px' : '16px'} Arial`;
+                tempCtx.textAlign = 'center'; tempCtx.textBaseline = 'middle';
+                tempCtx.fillText(`${angle.toFixed(1)}°`, textX, textY);
+                
+                circles.forEach(circle => {
+                    tempCtx.fillStyle = circle.color; tempCtx.beginPath(); tempCtx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2); tempCtx.fill();
+                    tempCtx.fillStyle = 'white'; tempCtx.beginPath(); tempCtx.arc(circle.x, circle.y, circle.radius - 4, 0, Math.PI * 2); tempCtx.fill();
+                });
+                tempCtx.fillStyle = '#e74c3c'; tempCtx.beginPath(); tempCtx.arc(vertex.x, vertex.y, VERTEX_RADIUS, 0, Math.PI * 2); tempCtx.fill();
+                tempCtx.fillStyle = 'white'; tempCtx.beginPath(); tempCtx.arc(vertex.x, vertex.y, VERTEX_RADIUS - 3, 0, Math.PI * 2); tempCtx.fill();
+            }
+
+            const protractor = document.getElementById('protractor-wrapper');
+            const isProtractorVisible = protractor.style.opacity !== '0' && protractor.style.display !== 'none';
+
+            if (!isProtractorVisible) {
+                finalizeDownload(tempCanvas);
+                return;
+            }
+
+            const serializer = new XMLSerializer();
+            const protractorSVG = document.getElementById('protractor-svg');
+            const svgString = serializer.serializeToString(protractorSVG);
+            const protractorImage = new Image();
+
+            protractorImage.onload = function() {
+                tempCtx.save();
+                tempCtx.translate(pXOffset + 180, pYOffset + 180);
+                tempCtx.rotate(pCurrentAngle * Math.PI / 180);
+                tempCtx.translate(-180, -180);
+                tempCtx.drawImage(protractorImage, 0, 0, 360, 185);
+                tempCtx.restore();
+                finalizeDownload(tempCanvas);
+            };
+            protractorImage.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+        }
+
+        window.addEventListener('resize', resizeCanvas); window.addEventListener('load', resizeCanvas);
+        window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 100); });
+        resizeCanvas();
+    </script>
+
+    <!-- 量角器的脚本 -->
+    <script>
+        const protractorWrapper = document.getElementById('protractor-wrapper');
+        const dragHandle = document.getElementById('drag-handle');
+        const rotateHandle = document.getElementById('rotate-handle');
+        const markingsGroup = document.getElementById('markings');
+        const protractorBody = document.body; // Use a different variable name to avoid conflict
+
+        function createMarkings() {
+            markingsGroup.innerHTML = '';
+            const R_BASE = 171, R_TEXT_OUTER = R_BASE - 30, R_TEXT_INNER = R_BASE - 15;
+            for (let angle = 0; angle <= 180; angle++) {
+                const rad = (180 - angle) * Math.PI / 180;
+                let lineLength = 5, lineClass = 'protractor-line';
+                if (angle % 5 === 0) { lineLength = 10; lineClass = 'protractor-line-5'; }
+                if (angle % 10 === 0) { lineLength = 15; lineClass = 'protractor-line-10'; }
+                const x1 = R_BASE * Math.cos(rad), y1 = -R_BASE * Math.sin(rad);
+                const x2 = (R_BASE - lineLength) * Math.cos(rad), y2 = -(R_BASE - lineLength) * Math.sin(rad);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1); line.setAttribute('y1', y1); line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+                line.setAttribute('class', lineClass); markingsGroup.appendChild(line);
+                if (angle % 10 === 0) {
+                    const radialLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    radialLine.setAttribute('x1', 0); radialLine.setAttribute('y1', 0);
+                    radialLine.setAttribute('x2', x1); radialLine.setAttribute('y2', y1);
+                    radialLine.setAttribute('class', 'protractor-radial-line');
+                    markingsGroup.insertBefore(radialLine, markingsGroup.firstChild);
+                    const textOuter = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    const textXOuter = R_TEXT_OUTER * Math.cos(rad), textYOuter = -R_TEXT_OUTER * Math.sin(rad);
+                    textOuter.setAttribute('x', textXOuter); textOuter.setAttribute('y', textYOuter + 4);
+                    textOuter.textContent = angle; textOuter.setAttribute('class', 'protractor-text');
+                    markingsGroup.appendChild(textOuter);
+                    const textInner = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    const textXInner = R_TEXT_INNER * Math.cos(rad), textYInner = -R_TEXT_INNER * Math.sin(rad);
+                    textInner.setAttribute('x', textXInner); textInner.setAttribute('y', textYInner + 4);
+                    textInner.textContent = 180 - angle; textInner.setAttribute('class', 'protractor-text');
+                    markingsGroup.appendChild(textInner);
+                }
+            }
+        }
+        createMarkings();
+
+        let isProtractorDragging = false, isProtractorRotating = false;
+        let pCurrentX, pCurrentY, pInitialX, pInitialY;
+        let pXOffset = 50, pYOffset = 50, pCurrentAngle = 0;
+        
+        protractorWrapper.style.top = '0px'; protractorWrapper.style.left = '0px';
+        protractorWrapper.style.transform = `translate3d(${pXOffset}px, ${pYOffset}px, 0)`;
+
+        function pDragStart(e) {
+            e.stopPropagation();
+            const event = e.type.includes('mouse') ? e : e.touches[0];
+            pInitialX = event.clientX - pXOffset; pInitialY = event.clientY - pYOffset;
+            if (e.target === dragHandle || e.target.parentElement === dragHandle || e.target === protractorWrapper) {
+                isProtractorDragging = true; protractorBody.classList.add('dragging');
+            }
+        }
+        function pDrag(e) {
+            if (isProtractorDragging) {
+                e.stopPropagation(); e.preventDefault();
+                const event = e.type.includes('mouse') ? e : e.touches[0];
+                pXOffset = event.clientX - pInitialX; pYOffset = event.clientY - pInitialY;
+                pSetTransform();
+            }
+        }
+        function pDragEnd(e) {
+            if (isProtractorDragging) {
+                e.stopPropagation();
+                isProtractorDragging = false; protractorBody.classList.remove('dragging');
+            }
+        }
+        function pRotateStart(e) {
+            e.stopPropagation(); isProtractorRotating = true; protractorBody.classList.add('rotating');
+        }
+        function pRotate(e) {
+            if (isProtractorRotating) {
+                e.stopPropagation(); e.preventDefault();
+                const event = e.type.includes('mouse') ? e : e.touches[0];
+                const centerX = pXOffset + 180, centerY = pYOffset + 180;
+                const deltaX = event.clientX - centerX, deltaY = event.clientY - centerY;
+                pCurrentAngle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 180;
+                pSetTransform();
+            }
+        }
+        function pRotateEnd(e) {
+            if (isProtractorRotating) {
+                e.stopPropagation();
+                isProtractorRotating = false; protractorBody.classList.remove('rotating');
+            }
+        }
+        function pSetTransform() {
+            protractorWrapper.style.transform = `translate3d(${pXOffset}px, ${pYOffset}px, 0) rotate(${pCurrentAngle}deg)`;
+        }
+
+        function toggleProtractor() {
+            const protractor = document.getElementById('protractor-wrapper');
+            const btn = document.getElementById('toggleProtractorBtn');
+            const isHidden = protractor.style.opacity === '0' || protractor.style.display === 'none';
+            
+            if (isHidden) {
+                protractor.style.display = 'block';
+                setTimeout(() => { protractor.style.opacity = '1'; }, 10);
+                btn.innerHTML = '📏 隐藏量角器';
+                btn.style.backgroundColor = '#8e44ad';
+            } else {
+                protractor.style.opacity = '0';
+                setTimeout(() => { protractor.style.display = 'none'; }, 300);
+                btn.innerHTML = '📏 显示量角器';
+                btn.style.backgroundColor = '#7f8c8d';
+            }
+        }
+        
+        function toggleCanvasTool() {
+            isCanvasToolVisible = !isCanvasToolVisible;
+            const btn = document.getElementById('toggleCanvasToolBtn');
+            if (isCanvasToolVisible) {
+                btn.innerHTML = '📐 隐藏画布工具';
+                btn.style.backgroundColor = '#16a085';
+            } else {
+                btn.innerHTML = '📐 显示画布工具';
+                btn.style.backgroundColor = '#7f8c8d';
+            }
+            draw(); // Redraw the canvas to show/hide the tool
+        }
+
+        const pStartEvents = ['mousedown', 'touchstart'];
+        const pMoveEvents = ['mousemove', 'touchmove'];
+        const pEndEvents = ['mouseup', 'touchend', 'mouseleave', 'touchcancel'];
+
+        pStartEvents.forEach(evt => {
+            dragHandle.addEventListener(evt, pDragStart);
+            protractorWrapper.addEventListener(evt, pDragStart);
+            rotateHandle.addEventListener(evt, pRotateStart);
+        });
+        pMoveEvents.forEach(evt => {
+            document.addEventListener(evt, pDrag, { passive: false });
+            document.addEventListener(evt, pRotate, { passive: false });
+        });
+        pEndEvents.forEach(evt => {
+            document.addEventListener(evt, pDragEnd);
+            document.addEventListener(evt, pRotateEnd);
+        });
+    </script>
+</body>
+</html>
