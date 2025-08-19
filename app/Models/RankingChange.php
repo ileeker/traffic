@@ -17,6 +17,10 @@ class RankingChange extends Model
         'current_ranking',
         'week_change',
         'week_trend',
+        'biweek_change',
+        'biweek_trend',
+        'triweek_change',
+        'triweek_trend',
         'month_change',
         'month_trend',
         'quarter_change',
@@ -80,8 +84,38 @@ class RankingChange extends Model
     }
 
     /**
-     * 月变化查询
+     * 2周变化查询
      */
+    public function scopeByBiweekChange($query, $min = null, $max = null, $trend = null)
+    {
+        if ($min !== null) {
+            $query->where('biweek_change', '>=', $min);
+        }
+        if ($max !== null) {
+            $query->where('biweek_change', '<=', $max);
+        }
+        if ($trend !== null) {
+            $query->where('biweek_trend', $trend);
+        }
+        return $query;
+    }
+
+    /**
+     * 3周变化查询
+     */
+    public function scopeByTriweekChange($query, $min = null, $max = null, $trend = null)
+    {
+        if ($min !== null) {
+            $query->where('triweek_change', '>=', $min);
+        }
+        if ($max !== null) {
+            $query->where('triweek_change', '<=', $max);
+        }
+        if ($trend !== null) {
+            $query->where('triweek_trend', $trend);
+        }
+        return $query;
+    }
     public function scopeByMonthChange($query, $min = null, $max = null, $trend = null)
     {
         if ($min !== null) {
@@ -135,6 +169,10 @@ class RankingChange extends Model
      */
     public function scopeUpTrend($query, $period = 'week')
     {
+        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
+        if (!in_array($period, $valid_periods)) {
+            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        }
         return $query->where("{$period}_trend", 'up');
     }
 
@@ -143,6 +181,10 @@ class RankingChange extends Model
      */
     public function scopeDownTrend($query, $period = 'week')
     {
+        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
+        if (!in_array($period, $valid_periods)) {
+            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        }
         return $query->where("{$period}_trend", 'down');
     }
 
@@ -151,6 +193,10 @@ class RankingChange extends Model
      */
     public function scopeStableTrend($query, $period = 'week')
     {
+        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
+        if (!in_array($period, $valid_periods)) {
+            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        }
         return $query->where("{$period}_trend", 'stable');
     }
 
@@ -159,6 +205,10 @@ class RankingChange extends Model
      */
     public function scopeOrderByChange($query, $period = 'week', $direction = 'desc')
     {
+        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
+        if (!in_array($period, $valid_periods)) {
+            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        }
         return $query->orderBy("{$period}_change", $direction);
     }
 }
