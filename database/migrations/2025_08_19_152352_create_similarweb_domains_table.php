@@ -51,10 +51,9 @@ return new class extends Migration
             $table->index('category', 'idx_category');
             $table->index('category_rank', 'idx_category_rank');
             $table->index('current_month', 'idx_current_month');
-            $table->index('current_visits', 'idx_current_visits');
             $table->index('current_emv', 'idx_current_emv');
             $table->index(['category', 'category_rank'], 'idx_category_ranking');
-            $table->index(['global_rank', 'current_visits'], 'idx_ranking_visits');
+            $table->index(['global_rank', 'current_emv'], 'idx_ranking_emv');
         });
     }
 

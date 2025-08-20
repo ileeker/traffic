@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use InvalidArgumentException;
 
 class SimilarwebChange extends Model
 {
@@ -171,91 +172,23 @@ class SimilarwebChange extends Model
         
         if (!in_array($period, $valid_periods)) {
             throw new InvalidArgumentException("Invalid period: {$period}. Valid periods: " . implode(', ', $valid_periods));
-        }metric = 'visits', $period = 'month')
-    {
-        $valid_metrics = ['visits', 'emv', 'global_rank'];
-        $valid_periods = ['month', 'quarter', 'halfyear', 'year'];
-        
-        if (!in_array($metric, $valid_metrics)) {
-            throw new InvalidArgumentException("Invalid metric: {$metric}");
-        }
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}");
         }
         
-        return $query->where("{$period}_{$metric}_trend", 'up');
-    }
-
-    /**
-     * 获取下降趋势的记录
-     */
-    public function scopeDownTrend($query, $metric = 'visits', $period = 'month')
-    {
-        $valid_metrics = ['visits', 'emv', 'global_rank'];
-        $valid_periods = ['month', 'quarter', 'halfyear', 'year'];
-        
-        if (!in_array($metric, $valid_metrics)) {
-            throw new InvalidArgumentException("Invalid metric: {$metric}");
-        }
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}");
-        }
-        
-        return $query->where("{$period}_{$metric}_trend", 'down');
-    }
-
-    /**
-     * 获取稳定趋势的记录
-     */
-    public function scopeStableTrend($query, $metric = 'visits', $period = 'month')
-    {
-        $valid_metrics = ['visits', 'emv', 'global_rank'];
-        $valid_periods = ['month', 'quarter', 'halfyear', 'year'];
-        
-        if (!in_array($metric, $valid_metrics)) {
-            throw new InvalidArgumentException("Invalid metric: {$metric}");
-        }
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}");
-        }
-        
-        return $query->where("{$period}_{$metric}_trend", 'stable');
-    }
-
-    /**
-     * 按变化幅度排序
-     */
-    public function scopeOrderByChange($query, $metric = 'visits', $period = 'month', $direction = 'desc')
-    {
-        $valid_metrics = ['visits', 'emv', 'global_rank'];
-        $valid_periods = ['month', 'quarter', 'halfyear', 'year'];
-        
-        if (!in_array($metric, $valid_metrics)) {
-            throw new InvalidArgumentException("Invalid metric: {$metric}");
-        }
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}");
-        }
-        
-        return $query->orderBy("{$period}_{$metric}_change", $direction);
+        return $query->orderBy("{$period}_emv_change", $direction);
     }
 
     /**
      * 获取最大变化的记录（绝对值）
      */
-    public function scopeOrderByAbsChange($query, $metric = 'visits', $period = 'month', $direction = 'desc')
+    public function scopeOrderByAbsChange($query, $period = 'month', $direction = 'desc')
     {
-        $valid_metrics = ['visits', 'emv', 'global_rank'];
         $valid_periods = ['month', 'quarter', 'halfyear', 'year'];
         
-        if (!in_array($metric, $valid_metrics)) {
-            throw new InvalidArgumentException("Invalid metric: {$metric}");
-        }
         if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}");
+            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods: " . implode(', ', $valid_periods));
         }
         
-        return $query->orderByRaw("ABS({$period}_{$metric}_change) {$direction}");
+        return $query->orderByRaw("ABS({$period}_emv_change) {$direction}");
     }
 
     /**
@@ -269,28 +202,12 @@ class SimilarwebChange extends Model
         }
         
         return [
-            'visits' => [
-                'change' => $this->{"{$period}_visits_change"},
-                'trend' => $this->{"{$period}_visits_trend"},
-                'percentage' => $this->calculatePercentageChange(
-                    $this->current_visits, 
-                    $this->{"{$period}_visits_change"}
-                )
-            ],
             'emv' => [
                 'change' => $this->{"{$period}_emv_change"},
                 'trend' => $this->{"{$period}_emv_trend"},
                 'percentage' => $this->calculatePercentageChange(
                     $this->current_emv, 
                     $this->{"{$period}_emv_change"}
-                )
-            ],
-            'global_rank' => [
-                'change' => $this->{"{$period}_global_rank_change"},
-                'trend' => $this->{"{$period}_global_rank_trend"},
-                'percentage' => $this->calculatePercentageChange(
-                    $this->current_global_rank, 
-                    $this->{"{$period}_global_rank_change"}
                 )
             ]
         ];
@@ -314,9 +231,9 @@ class SimilarwebChange extends Model
     }
 
     /**
-     * 获取所有时间周期的摘要
+     * 获取所有时间周期的EMV变化摘要
      */
-    public function getChangesSummary()
+    public function getEmvChangesSummary()
     {
         $periods = ['month', 'quarter', 'halfyear', 'year'];
         $summary = [];
