@@ -101,9 +101,16 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js" 
+            onload="initChart()" 
+            onerror="console.error('Chart.js 加载失败')"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initChart() {
+            console.log('Chart.js 已加载');
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js 未正确加载');
+                return;
+            }
             const ctx = document.getElementById('rankingChart').getContext('2d');
             
             // 准备图表数据
@@ -209,6 +216,17 @@
                     }
                 }
             });
-        });
+        }
+        
+        // 确保页面加载完成后再初始化图表
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof Chart !== 'undefined') {
+                    initChart();
+                }
+            });
+        } else if (typeof Chart !== 'undefined') {
+            initChart();
+        }
     </script>
 </x-app-layout>
