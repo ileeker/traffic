@@ -101,132 +101,130 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js" 
-            onload="initChart()" 
-            onerror="console.error('Chart.js 加载失败')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
-        function initChart() {
-            console.log('Chart.js 已加载');
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js 未正确加载');
-                return;
-            }
-            const ctx = document.getElementById('rankingChart').getContext('2d');
-            
-            // 准备图表数据
-            const rankingData = @json($domainRecord->ranking_data['data'] ?? []);
-            console.log('排名数据:', rankingData);
-            
-            if (!rankingData || rankingData.length === 0) {
-                console.log('没有排名数据');
-                return;
-            }
-            
-            const labels = rankingData.map(item => {
-                const date = new Date(item.date);
-                return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-            });
-            const data = rankingData.map(item => item.rank);
-            
-            console.log('图表标签:', labels);
-            console.log('图表数据:', data);
-            
-            // 检测暗色模式
-            const isDarkMode = document.documentElement.classList.contains('dark') || 
-                              window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const textColor = isDarkMode ? '#e5e7eb' : '#374151';
-            const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '域名排名',
-                        data: data,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#3b82f6',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
+        window.addEventListener('load', function() {
+            // 等待一小段时间确保 Chart.js 完全加载
+            setTimeout(function() {
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js 未正确加载');
+                    document.getElementById('rankingChart').parentElement.innerHTML = 
+                        '<div class="text-center p-8 text-gray-500">图表加载失败，请刷新页面重试</div>';
+                    return;
+                }
+
+                const ctx = document.getElementById('rankingChart');
+                if (!ctx) {
+                    console.error('找不到图表容器');
+                    return;
+                }
+                
+                // 准备图表数据
+                const rankingData = @json($domainRecord->ranking_data['data'] ?? []);
+                console.log('排名数据:', rankingData);
+                
+                if (!rankingData || rankingData.length === 0) {
+                    console.log('没有排名数据');
+                    ctx.parentElement.innerHTML = '<div class="text-center p-8 text-gray-500">暂无排名数据</div>';
+                    return;
+                }
+                
+                const labels = rankingData.map(item => {
+                    const date = new Date(item.date);
+                    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+                });
+                const data = rankingData.map(item => item.rank);
+                
+                console.log('图表标签:', labels);
+                console.log('图表数据:', data);
+                
+                // 检测暗色模式
+                const isDarkMode = document.documentElement.classList.contains('dark') || 
+                                  window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+                const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '域名排名',
+                            data: data,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                        }]
                     },
-                    plugins: {
-                        legend: {
-                            display: false,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
                         },
-                        tooltip: {
-                            backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-                            titleColor: textColor,
-                            bodyColor: textColor,
-                            borderColor: gridColor,
-                            borderWidth: 1,
-                            displayColors: false,
-                            callbacks: {
-                                title: function(context) {
-                                    return '日期: ' + rankingData[context[0].dataIndex].date;
-                                },
-                                label: function(context) {
-                                    return '排名: #' + context.parsed.y.toLocaleString();
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: gridColor,
-                                drawBorder: false,
+                        plugins: {
+                            legend: {
+                                display: false,
                             },
-                            ticks: {
-                                color: textColor,
-                                font: {
-                                    size: 12
+                            tooltip: {
+                                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                titleColor: textColor,
+                                bodyColor: textColor,
+                                borderColor: gridColor,
+                                borderWidth: 1,
+                                displayColors: false,
+                                callbacks: {
+                                    title: function(context) {
+                                        return '日期: ' + rankingData[context[0].dataIndex].date;
+                                    },
+                                    label: function(context) {
+                                        return '排名: #' + context.parsed.y.toLocaleString();
+                                    }
                                 }
                             }
                         },
-                        y: {
-                            reverse: true, // 排名越小越好，所以倒序显示
-                            grid: {
-                                color: gridColor,
-                                drawBorder: false,
-                            },
-                            ticks: {
-                                color: textColor,
-                                font: {
-                                    size: 12
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: gridColor,
+                                    drawBorder: false,
                                 },
-                                callback: function(value) {
-                                    return '#' + value.toLocaleString();
+                                ticks: {
+                                    color: textColor,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            y: {
+                                reverse: true, // 排名越小越好，所以倒序显示
+                                grid: {
+                                    color: gridColor,
+                                    drawBorder: false,
+                                },
+                                ticks: {
+                                    color: textColor,
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return '#' + value.toLocaleString();
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
-        }
-        
-        // 确保页面加载完成后再初始化图表
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Chart !== 'undefined') {
-                    initChart();
-                }
-            });
-        } else if (typeof Chart !== 'undefined') {
-            initChart();
-        }
+                });
+            }, 100);
+        });
+    </script>
     </script>
 </x-app-layout>
