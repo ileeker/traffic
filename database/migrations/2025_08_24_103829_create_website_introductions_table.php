@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('domain', 255)->unique('domain_unique');
             $table->text('intro')->nullable()->comment('网站介绍内容');
+            $table->timestamp('registered_at')->nullable()->comment('Domain registration date');
             $table->timestamps();
 
             // 索引优化
