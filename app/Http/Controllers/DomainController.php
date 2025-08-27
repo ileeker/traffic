@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Domain;
 use Illuminate\Http\JsonResponse;
 
-class DomainRankingController extends Controller
+class DomainController extends Controller
 {
     /**
      * 处理域名搜索请求（接受查询参数）
