@@ -4,24 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Domain;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class DomainController extends Controller
 {
     /**
-     * 检索域名信息并在视图中显示其排名历史。
+     * 获取指定域名的排名信息并显示页面
      *
-     * @param  string  $domain
-     * @return \Illuminate\View\View
+     * @param string $domain
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function getRanking(string $domain): View
+    public function getRanking(string $domain)
     {
-        // 查询域名信息，如果找不到则自动返回 404
-        $domainInfo = Domain::where('domain', $domain)->firstOrFail();
-
-        // 返回 'domain-ranking' 视图，并将 $domainInfo 数据传递给它
-        return view('domain-ranking', [
-            'domainInfo' => $domainInfo
-        ]);
+        try {
+            // 根据域名查找记录
+            $domainRecord = Domain::where('domain', $domain)->first();
+            
+            // 如果未找到域名记录
+            if (!$domainRecord) {
+                return redirect()->back()->with('error', '域名 ' . $domain . ' 未找到');
+            }
+            
+            // 返回视图并传递数据
+            return view('domain.ranking', compact('domainRecord'));
+            
+        } catch (\Exception $e) {
+            // 处理异常情况
+            return redirect()->back()->with('error', '获取域名信息失败：' . $e->getMessage());
+        }
     }
 }
