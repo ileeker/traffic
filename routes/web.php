@@ -27,7 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/ranking/{domain?}', [DomainRankingController::class, 'getDomainRanking'])->name('ranking.domain');
+    // 详细页面路由
+Route::get('/ranking/domain/{domain}', 'DomainRankingController@getDomainRanking')
+    ->name('ranking.domain.show')
+    ->where('domain', '[a-zA-Z0-9.-]+');
     Route::get('/ranking/domains', [ProfileController::class, 'edit'])->name('ranking.domains');
 
 });
