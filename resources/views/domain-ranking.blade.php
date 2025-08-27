@@ -47,9 +47,14 @@
     {{-- 引入 Chart.js 库 --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    {{-- 在脚本之前准备好数据，避免在 @json 中使用复杂表达式 --}}
+    @php
+        $chartData = $domainInfo->ranking_data['data'] ?? [];
+    @endphp
+
     <script>
-        // 使用 @json 指令安全地将 PHP 变量转换为 JavaScript 对象
-        const rankingData = @json($domainInfo->ranking_data['data'] ?? []);
+        // 使用 @json 指令安全地将准备好的 PHP 变量转换为 JavaScript 对象
+        const rankingData = @json($chartData);
         
         // 从数据中提取日期作为图表的标签 (X轴)
         const labels = rankingData.map(item => item.date);
