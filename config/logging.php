@@ -115,7 +115,8 @@ return [
         ],
 
         'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+            'driver' => 'monolog',
+            'handler' => NullHandler::class,
         ],
     ],
 
