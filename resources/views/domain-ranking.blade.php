@@ -3,7 +3,7 @@
     {{-- 页面标题 --}}
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('域名排名详情: ') }} {{ $domainInfo->domain }}
+            {{ __('域名排名详情: ') }} {{ $domain->name }}
         </h2>
     </x-slot>
 
@@ -16,18 +16,24 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">域名</h3>
-                            <p class="mt-1 text-2xl font-semibold">{{ $domainInfo->domain }}</p>
+                            <p class="mt-1 text-2xl font-semibold">{{ $domain->name }}</p>
                         </div>
+                        @if($domain->current_ranking)
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">当前排名</h3>
-                            <p class="mt-1 text-2xl font-semibold text-indigo-500">{{ number_format($domainInfo->current_ranking) }}</p>
+                            <p class="mt-1 text-2xl font-semibold text-indigo-500">{{ number_format($domain->current_ranking) }}</p>
                         </div>
+                        @endif
+                        @if($domain->updated_at)
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">最后更新时间</h3>
-                            <p class="mt-1 text-xl font-semibold">{{ $domainInfo->last_updated->format('Y-m-d H:i') }}</p>
+                            <p class="mt-1 text-xl font-semibold">{{ $domain->updated_at->format('Y-m-d H:i') }}</p>
                         </div>
+                        @endif
                     </div>
 
+                    {{-- 只有在有排名数据时才显示图表 --}}
+                    @if($rankingData && isset($rankingData['data']) && count($rankingData['data']) > 0)
                     {{-- 图表容器 --}}
                     <div class="mt-8">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
@@ -38,23 +44,25 @@
                             <canvas id="rankingChart"></canvas>
                         </div>
                     </div>
+                    @else
+                    <div class="mt-8 text-center py-8">
+                        <p class="text-gray-500 dark:text-gray-400">暂无排名历史数据</p>
+                    </div>
+                    @endif
 
                 </div>
             </div>
         </div>
     </div>
 
+    {{-- 只有在有数据时才加载图表脚本 --}}
+    @if($rankingData && isset($rankingData['data']) && count($rankingData['data']) > 0)
     {{-- 引入 Chart.js 库 --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    {{-- 在脚本之前准备好数据，避免在 @json 中使用复杂表达式 --}}
-    @php
-        $chartData = $domainInfo->ranking_data['data'] ?? [];
-    @endphp
-
     <script>
-        // 使用 @json 指令安全地将准备好的 PHP 变量转换为 JavaScript 对象
-        const rankingData = @json($chartData);
+        // 使用 @json 指令安全地将 PHP 变量转换为 JavaScript 对象
+        const rankingData = @json($rankingData['data']);
         
         // 从数据中提取日期作为图表的标签 (X轴)
         const labels = rankingData.map(item => item.date);
@@ -134,4 +142,5 @@
             }
         });
     </script>
+    @endif
 </x-app-layout>
