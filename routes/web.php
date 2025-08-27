@@ -27,7 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/ranking/domain', [ProfileController::class, 'edit'])->name('ranking.domain');
+    Route::get('/ranking/{domain?}', [DomainRankingController::class, 'getDomainRanking'])->name('ranking.domain');
     Route::get('/ranking/domains', [ProfileController::class, 'edit'])->name('ranking.domains');
 
 });
