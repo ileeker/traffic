@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 
     // 详细页面路由
     Route::get('/domain/{domain}', [DomainController::class, 'getRanking'])->name('domain.ranking');
+    Route::get('/test/{domain}', [DomainController::class, 'getTest'])->name('domain.test');
     Route::get('/domains/{domains}', [DomainController::class, 'getRanking'])->name('domains.ranking');
 
 });
