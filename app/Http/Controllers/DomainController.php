@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Domain; // 引入 Domain 模型
+use App\Models\Domain;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class DomainController extends Controller
 {
     /**
-     * 根据域名检索并返回其所有信息。
+     * 检索域名信息并在视图中显示其排名历史。
      *
-     * @param  string  $domain  // 从路由中接收域名参数
-     * @return \Illuminate\Http\JsonResponse
+     * @param  string  $domain
+     * @return \Illuminate\View\View
      */
-    public function getRanking(string $domain)
+    public function getRanking(string $domain): View
     {
-        // 使用 where() 方法来根据 'domain' 字段查询
-        // 使用 firstOrFail() 方法，如果找不到对应的记录，会自动抛出异常并返回 404 响应
+        // 查询域名信息，如果找不到则自动返回 404
         $domainInfo = Domain::where('domain', $domain)->firstOrFail();
 
-        // 如果找到了记录，Laravel 会自动将其转换为 JSON 格式返回
-        return response()->json($domainInfo);
+        // 返回 'domain-ranking' 视图，并将 $domainInfo 数据传递给它
+        return view('domain-ranking', [
+            'domainInfo' => $domainInfo
+        ]);
     }
 }
