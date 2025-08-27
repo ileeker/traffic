@@ -14,19 +14,9 @@ class DomainRankingController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function searchDomain(Request $request)
+    public function getRanking(Request $request)
     {
-        $domain = $request->get('domain');
-        
-        if (!$domain) {
-            return redirect()->back()->withErrors(['error' => 'Please enter a domain name']);
-        }
-        
-        // 清理域名格式
-        $domain = trim(strtolower($domain));
-        
-        // 重定向到RESTful URL
-        return redirect()->route('ranking.domain.show', ['domain' => $domain]);
+        return "Hello";
     }
     
     /**

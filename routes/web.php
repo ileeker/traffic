@@ -28,10 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // 详细页面路由
-Route::get('/ranking/domain/{domain}', 'DomainRankingController@getDomainRanking')
-    ->name('ranking.domain.show')
-    ->where('domain', '[a-zA-Z0-9.-]+');
-    Route::get('/ranking/domains', [ProfileController::class, 'edit'])->name('ranking.domains');
+    Route::get('/domain/{domain}', [DomainController::class, 'getRanking'])->name('domain.ranking');
+    Route::get('/domains/{domains}', [DomainController::class, 'getRanking'])->name('domains.ranking');
 
 });
 
