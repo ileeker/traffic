@@ -15,6 +15,8 @@ class RankingChange extends Model
         'domain',
         'record_date',
         'current_ranking',
+        'daily_change',          // 新增：昨日变化
+        'daily_trend',           // 新增：昨日趋势
         'week_change',
         'week_trend',
         'biweek_change',
@@ -32,6 +34,7 @@ class RankingChange extends Model
     protected $casts = [
         'record_date' => 'date',
         'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
@@ -43,172 +46,177 @@ class RankingChange extends Model
     }
 
     /**
-     * 今日记录
+     * 查询作用域：获取指定日期的记录
      */
-    public function scopeToday($query)
+    public function scopeForDate($query, $date)
     {
-        return $query->whereDate('record_date', today());
+        return $query->where('record_date', $date);
     }
 
     /**
-     * 按域名查询
+     * 查询作用域：获取指定域名的记录
      */
-    public function scopeByDomain($query, $domain)
+    public function scopeForDomain($query, $domain)
     {
         return $query->where('domain', $domain);
     }
 
     /**
-     * 按记录日期查询
+     * 查询作用域：按日变化排序
      */
-    public function scopeByRecordDate($query, $date)
+    public function scopeOrderByDailyChange($query, $direction = 'desc')
     {
-        return $query->whereDate('record_date', $date);
+        return $query->orderBy('daily_change', $direction);
     }
 
     /**
-     * 周变化查询
+     * 查询作用域：按周变化排序
      */
-    public function scopeByWeekChange($query, $min = null, $max = null, $trend = null)
+    public function scopeOrderByWeekChange($query, $direction = 'desc')
     {
-        if ($min !== null) {
-            $query->where('week_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('week_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('week_trend', $trend);
-        }
-        return $query;
+        return $query->orderBy('week_change', $direction);
     }
 
     /**
-     * 2周变化查询
+     * 查询作用域：按月变化排序
      */
-    public function scopeByBiweekChange($query, $min = null, $max = null, $trend = null)
+    public function scopeOrderByMonthChange($query, $direction = 'desc')
     {
-        if ($min !== null) {
-            $query->where('biweek_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('biweek_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('biweek_trend', $trend);
-        }
-        return $query;
+        return $query->orderBy('month_change', $direction);
     }
 
     /**
-     * 3周变化查询
+     * 查询作用域：获取上升趋势的记录
      */
-    public function scopeByTriweekChange($query, $min = null, $max = null, $trend = null)
+    public function scopeUpTrend($query, $period = 'daily')
     {
-        if ($min !== null) {
-            $query->where('triweek_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('triweek_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('triweek_trend', $trend);
-        }
-        return $query;
-    }
-    public function scopeByMonthChange($query, $min = null, $max = null, $trend = null)
-    {
-        if ($min !== null) {
-            $query->where('month_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('month_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('month_trend', $trend);
-        }
-        return $query;
+        return $query->where($period . '_trend', 'up');
     }
 
     /**
-     * 季度变化查询
+     * 查询作用域：获取下降趋势的记录
      */
-    public function scopeByQuarterChange($query, $min = null, $max = null, $trend = null)
+    public function scopeDownTrend($query, $period = 'daily')
     {
-        if ($min !== null) {
-            $query->where('quarter_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('quarter_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('quarter_trend', $trend);
-        }
-        return $query;
+        return $query->where($period . '_trend', 'down');
     }
 
     /**
-     * 年变化查询
+     * 查询作用域：获取稳定趋势的记录
      */
-    public function scopeByYearChange($query, $min = null, $max = null, $trend = null)
+    public function scopeStableTrend($query, $period = 'daily')
     {
-        if ($min !== null) {
-            $query->where('year_change', '>=', $min);
-        }
-        if ($max !== null) {
-            $query->where('year_change', '<=', $max);
-        }
-        if ($trend !== null) {
-            $query->where('year_trend', $trend);
-        }
-        return $query;
+        return $query->where($period . '_trend', 'stable');
     }
 
     /**
-     * 获取上升趋势的记录
+     * 访问器：格式化日变化显示
      */
-    public function scopeUpTrend($query, $period = 'week')
+    public function getDailyChangeFormattedAttribute()
     {
-        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        if (is_null($this->daily_change)) {
+            return 'N/A';
         }
-        return $query->where("{$period}_trend", 'up');
+        
+        $prefix = $this->daily_change > 0 ? '+' : '';
+        return $prefix . $this->daily_change;
     }
 
     /**
-     * 获取下降趋势的记录
+     * 访问器：格式化周变化显示
      */
-    public function scopeDownTrend($query, $period = 'week')
+    public function getWeekChangeFormattedAttribute()
     {
-        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        if (is_null($this->week_change)) {
+            return 'N/A';
         }
-        return $query->where("{$period}_trend", 'down');
+        
+        $prefix = $this->week_change > 0 ? '+' : '';
+        return $prefix . $this->week_change;
     }
 
     /**
-     * 获取稳定趋势的记录
+     * 访问器：格式化月变化显示
      */
-    public function scopeStableTrend($query, $period = 'week')
+    public function getMonthChangeFormattedAttribute()
     {
-        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
+        if (is_null($this->month_change)) {
+            return 'N/A';
         }
-        return $query->where("{$period}_trend", 'stable');
+        
+        $prefix = $this->month_change > 0 ? '+' : '';
+        return $prefix . $this->month_change;
     }
 
     /**
-     * 按变化幅度排序
+     * 访问器：获取趋势图标
      */
-    public function scopeOrderByChange($query, $period = 'week', $direction = 'desc')
+    public function getDailyTrendIconAttribute()
     {
-        $valid_periods = ['week', 'biweek', 'triweek', 'month', 'quarter', 'year'];
-        if (!in_array($period, $valid_periods)) {
-            throw new InvalidArgumentException("Invalid period: {$period}. Valid periods are: " . implode(', ', $valid_periods));
-        }
-        return $query->orderBy("{$period}_change", $direction);
+        return match($this->daily_trend) {
+            'up' => '↗️',
+            'down' => '↘️',
+            'stable' => '→',
+            default => '-'
+        };
+    }
+
+    /**
+     * 访问器：获取趋势颜色类
+     */
+    public function getDailyTrendColorAttribute()
+    {
+        return match($this->daily_trend) {
+            'up' => 'text-green-500',
+            'down' => 'text-red-500',
+            'stable' => 'text-gray-500',
+            default => 'text-gray-400'
+        };
+    }
+
+    /**
+     * 静态方法：获取最新记录日期
+     */
+    public static function getLatestRecordDate()
+    {
+        return static::max('record_date');
+    }
+
+    /**
+     * 静态方法：获取指定域名的最新记录
+     */
+    public static function getLatestForDomain($domain)
+    {
+        return static::where('domain', $domain)
+            ->orderBy('record_date', 'desc')
+            ->first();
+    }
+
+    /**
+     * 静态方法：获取今日表现最好的域名
+     */
+    public static function getTopDailyPerformers($limit = 10, $date = null)
+    {
+        $date = $date ?: static::getLatestRecordDate();
+        
+        return static::where('record_date', $date)
+            ->where('daily_change', '>', 0)
+            ->orderBy('daily_change', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * 静态方法：获取今日表现最差的域名
+     */
+    public static function getWorstDailyPerformers($limit = 10, $date = null)
+    {
+        $date = $date ?: static::getLatestRecordDate();
+        
+        return static::where('record_date', $date)
+            ->where('daily_change', '<', 0)
+            ->orderBy('daily_change', 'asc')
+            ->limit($limit)
+            ->get();
     }
 }
