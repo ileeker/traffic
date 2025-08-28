@@ -197,49 +197,87 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">流量来源</h3>
                         
-                        <div class="grid grid-cols-6 gap-4">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">直接访问</p>
-                                <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
+                        <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-8">
+                                <!-- 直接访问 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21l8-8-8-8"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">直接访问</p>
+                                        <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
+                                    </div>
+                                </div>
+
+                                <!-- 搜索引擎 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-green-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">搜索引擎</p>
+                                        <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
+                                    </div>
+                                </div>
+
+                                <!-- 推荐链接 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-purple-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">推荐链接</p>
+                                        <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
+                                    </div>
+                                </div>
+
+                                <!-- 社交媒体 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-pink-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">社交媒体</p>
+                                        <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
+                                    </div>
+                                </div>
+
+                                <!-- 付费推广 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-orange-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">付费推广</p>
+                                        <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
+                                    </div>
+                                </div>
+
+                                <!-- 邮件 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-red-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">邮件</p>
+                                        <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex items-center justify-center text-gray-400">
-                                <span class="text-2xl">|</span>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">搜索引擎</p>
-                                <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
-                            </div>
-                            <div class="flex items-center justify-center text-gray-400">
-                                <span class="text-2xl">|</span>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">推荐链接</p>
-                                <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
-                            </div>
-                            <div class="flex items-center justify-center text-gray-400">
-                                <span class="text-2xl">|</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-6 gap-4 mt-4">
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">社交媒体</p>
-                                <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
-                            </div>
-                            <div class="flex items-center justify-center text-gray-400">
-                                <span class="text-2xl">|</span>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">付费推广</p>
-                                <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
-                            </div>
-                            <div class="flex items-center justify-center text-gray-400">
-                                <span class="text-2xl">|</span>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">邮件</p>
-                                <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
-                            </div>
-                            <div></div>
                         </div>
                     </div>
                 </div>
@@ -274,47 +312,57 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">地理分布 (前5名)</h3>
                         
-                        <div class="grid grid-cols-5 gap-4">
-                            @foreach(array_slice($topCountries, 0, 5) as $country)
-                                @php
-                                    $countryNames = [
-                                        'DE' => '德国',
-                                        'DK' => '丹麦', 
-                                        'ES' => '西班牙',
-                                        'FR' => '法国',
-                                        'SE' => '瑞典',
-                                        'US' => '美国',
-                                        'CN' => '中国',
-                                        'GB' => '英国',
-                                        'JP' => '日本'
-                                    ];
-                                    $countryName = $countryNames[$country['CountryCode']] ?? $country['CountryCode'];
-                                    $flagEmojis = [
-                                        'DE' => '🇩🇪',
-                                        'DK' => '🇩🇰', 
-                                        'ES' => '🇪🇸',
-                                        'FR' => '🇫🇷',
-                                        'SE' => '🇸🇪',
-                                        'US' => '🇺🇸',
-                                        'CN' => '🇨🇳',
-                                        'GB' => '🇬🇧',
-                                        'JP' => '🇯🇵'
-                                    ];
-                                    $flag = $flagEmojis[$country['CountryCode']] ?? '🌐';
-                                @endphp
-                                <div class="text-center">
-                                    <div class="flex items-center justify-center mb-2">
-                                        <span class="text-2xl mr-2">{{ $flag }}</span>
-                                        <span class="font-medium text-sm text-gray-900 dark:text-white">{{ $countryName }}</span>
+                        <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-6">
+                                @foreach(array_slice($topCountries, 0, 5) as $country)
+                                    @php
+                                        $countryNames = [
+                                            'DE' => '德国',
+                                            'DK' => '丹麦', 
+                                            'ES' => '西班牙',
+                                            'FR' => '法国',
+                                            'SE' => '瑞典',
+                                            'US' => '美国',
+                                            'CN' => '中国',
+                                            'GB' => '英国',
+                                            'JP' => '日本'
+                                        ];
+                                        $countryName = $countryNames[$country['CountryCode']] ?? $country['CountryCode'];
+                                        $flagEmojis = [
+                                            'DE' => '🇩🇪',
+                                            'DK' => '🇩🇰', 
+                                            'ES' => '🇪🇸',
+                                            'FR' => '🇫🇷',
+                                            'SE' => '🇸🇪',
+                                            'US' => '🇺🇸',
+                                            'CN' => '🇨🇳',
+                                            'GB' => '🇬🇧',
+                                            'JP' => '🇯🇵'
+                                        ];
+                                        $flag = $flagEmojis[$country['CountryCode']] ?? '🌐';
+                                        
+                                        // 为不同国家设置不同颜色
+                                        $colors = ['blue', 'green', 'purple', 'pink', 'orange'];
+                                        $colorIndex = $loop->index % count($colors);
+                                        $color = $colors[$colorIndex];
+                                    @endphp
+                                    <div class="flex items-center">
+                                        <div class="p-2 bg-{{ $color }}-500 bg-opacity-10 rounded-full mr-3">
+                                            <svg class="w-5 h-5 text-{{ $color }}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center mb-1">
+                                                <span class="text-lg mr-1">{{ $flag }}</span>
+                                                <p class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ $countryName }}</p>
+                                            </div>
+                                            <p class="text-lg font-bold text-{{ $color }}-600">{{ number_format($country['Value'] * 100, 1) }}%</p>
+                                        </div>
                                     </div>
-                                    <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
-                                        <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $country['Value'] * 100 }}%"></div>
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ number_format($country['Value'] * 100, 1) }}%
-                                    </span>
-                                </div>
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
