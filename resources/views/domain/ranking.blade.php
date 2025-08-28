@@ -17,7 +17,36 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            @if($domainRecord)
+            <!-- 切换按钮 -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex justify-center space-x-4">
+                        @if($domainRecord)
+                        <button id="trancoBtn" 
+                                class="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 shadow-md">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Tranco 排名数据
+                        </button>
+                        @endif
+                        
+                        @if($similarwebRecord)
+                        <button id="similarwebBtn" 
+                                class="flex items-center px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors duration-200 shadow-md">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Similarweb 流量数据
+                        </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tranco 数据部分 -->
+            <div id="trancoData" class="data-section">
+                @if($domainRecord)
                 @php
                     $rankingData = $domainRecord->ranking_data['data'] ?? [];
                     $firstRank = count($rankingData) > 0 ? $rankingData[0]['rank'] : $domainRecord->current_ranking;
@@ -104,9 +133,12 @@
                         </div>
                     </div>
                 </div>
-            @endif
+                @endif
+            </div>
 
-            @if($similarwebRecord)
+            <!-- Similarweb 数据部分 -->
+            <div id="similarwebData" class="data-section" style="display: none;">
+                @if($similarwebRecord)
                 @php
                     $trafficData = $similarwebRecord->traffic_data['data'] ?? [];
                     $topCountries = $similarwebRecord->top_country_shares ?? [];
@@ -436,190 +468,283 @@
                     </div>
                 </div>
                 @endif
-            @endif
+                @endif
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                if (typeof Chart === 'undefined') {
-                    console.error('Chart.js 未正确加载');
-                    return;
+        // 页面切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const trancoBtn = document.getElementById('trancoBtn');
+            const similarwebBtn = document.getElementById('similarwebBtn');
+            const trancoData = document.getElementById('trancoData');
+            const similarwebData = document.getElementById('similarwebData');
+
+            // 初始状态：如果有 Tranco 数据则显示 Tranco，否则显示 Similarweb
+            let currentView = 'tranco';
+            @if(!$domainRecord && $similarwebRecord)
+                currentView = 'similarweb';
+                if (similarwebData) similarwebData.style.display = 'block';
+                if (trancoData) trancoData.style.display = 'none';
+                if (similarwebBtn) {
+                    similarwebBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                    similarwebBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 }
+                if (trancoBtn) {
+                    trancoBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    trancoBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                }
+            @endif
 
-                // 检测暗色模式
-                const isDarkMode = document.documentElement.classList.contains('dark') || 
-                                  window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const textColor = isDarkMode ? '#e5e7eb' : '#374151';
-                const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
-
-                // 排名趋势图
-                @if($domainRecord)
-                const rankingCtx = document.getElementById('rankingChart');
-                if (rankingCtx) {
-                    const rankingData = @json($domainRecord->ranking_data['data'] ?? []);
-                    
-                    if (rankingData && rankingData.length > 0) {
-                        const rankingLabels = rankingData.map(item => {
-                            const date = new Date(item.date);
-                            return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-                        });
-                        const rankingValues = rankingData.map(item => item.rank);
+            // Tranco 按钮点击事件
+            if (trancoBtn) {
+                trancoBtn.addEventListener('click', function() {
+                    if (currentView !== 'tranco') {
+                        currentView = 'tranco';
                         
-                        new Chart(rankingCtx, {
-                            type: 'line',
-                            data: {
-                                labels: rankingLabels,
-                                datasets: [{
-                                    label: '域名排名',
-                                    data: rankingValues,
-                                    borderColor: '#3b82f6',
-                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointBackgroundColor: '#3b82f6',
-                                    pointBorderColor: '#ffffff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 6,
-                                    pointHoverRadius: 8,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                interaction: {
-                                    intersect: false,
-                                    mode: 'index',
-                                },
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-                                        titleColor: textColor,
-                                        bodyColor: textColor,
-                                        borderColor: gridColor,
-                                        borderWidth: 1,
-                                        displayColors: false,
-                                        callbacks: {
-                                            title: function(context) {
-                                                return '日期: ' + rankingData[context[0].dataIndex].date;
-                                            },
-                                            label: function(context) {
-                                                return '排名: #' + context.parsed.y.toLocaleString();
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    x: {
-                                        grid: { color: gridColor, drawBorder: false },
-                                        ticks: { color: textColor, font: { size: 12 } }
-                                    },
-                                    y: {
-                                        reverse: true,
-                                        grid: { color: gridColor, drawBorder: false },
-                                        ticks: {
-                                            color: textColor,
-                                            font: { size: 12 },
-                                            callback: function(value) {
-                                                return '#' + value.toLocaleString();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    } else {
-                        rankingCtx.parentElement.innerHTML = '<div class="text-center p-8 text-gray-500">暂无排名数据</div>';
-                    }
-                }
-                @endif
-
-                // 流量趋势图
-                @if($similarwebRecord)
-                const trafficCtx = document.getElementById('trafficChart');
-                if (trafficCtx) {
-                    const trafficData = @json($similarwebRecord->traffic_data['data'] ?? []);
-                    
-                    if (trafficData && trafficData.length > 0) {
-                        const trafficLabels = trafficData.map(item => {
-                            const date = new Date(item.month + '-01');
-                            return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' });
-                        });
-                        const trafficValues = trafficData.map(item => item.emv);
+                        // 切换显示
+                        if (trancoData) trancoData.style.display = 'block';
+                        if (similarwebData) similarwebData.style.display = 'none';
                         
-                        new Chart(trafficCtx, {
-                            type: 'line',
-                            data: {
-                                labels: trafficLabels,
-                                datasets: [{
-                                    label: '月访问量',
-                                    data: trafficValues,
-                                    borderColor: '#10b981',
-                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                    borderWidth: 3,
-                                    fill: true,
-                                    tension: 0.4,
-                                    pointBackgroundColor: '#10b981',
-                                    pointBorderColor: '#ffffff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 6,
-                                    pointHoverRadius: 8,
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                interaction: {
-                                    intersect: false,
-                                    mode: 'index',
-                                },
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-                                        titleColor: textColor,
-                                        bodyColor: textColor,
-                                        borderColor: gridColor,
-                                        borderWidth: 1,
-                                        displayColors: false,
-                                        callbacks: {
-                                            title: function(context) {
-                                                return '月份: ' + trafficData[context[0].dataIndex].month;
-                                            },
-                                            label: function(context) {
-                                                return '访问量: ' + context.parsed.y.toLocaleString();
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    x: {
-                                        grid: { color: gridColor, drawBorder: false },
-                                        ticks: { color: textColor, font: { size: 12 } }
-                                    },
-                                    y: {
-                                        grid: { color: gridColor, drawBorder: false },
-                                        ticks: {
-                                            color: textColor,
-                                            font: { size: 12 },
-                                            callback: function(value) {
-                                                return value.toLocaleString();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    } else {
-                        trafficCtx.parentElement.innerHTML = '<div class="text-center p-8 text-gray-500">暂无流量数据</div>';
+                        // 切换按钮样式
+                        trancoBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                        trancoBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        
+                        if (similarwebBtn) {
+                            similarwebBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                            similarwebBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                        }
+                        
+                        // 重新初始化 Tranco 图表
+                        setTimeout(() => initTrancoChart(), 100);
                     }
+                });
+            }
+
+            // Similarweb 按钮点击事件
+            if (similarwebBtn) {
+                similarwebBtn.addEventListener('click', function() {
+                    if (currentView !== 'similarweb') {
+                        currentView = 'similarweb';
+                        
+                        // 切换显示
+                        if (similarwebData) similarwebData.style.display = 'block';
+                        if (trancoData) trancoData.style.display = 'none';
+                        
+                        // 切换按钮样式
+                        similarwebBtn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                        similarwebBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        
+                        if (trancoBtn) {
+                            trancoBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                            trancoBtn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+                        }
+                        
+                        // 重新初始化 Similarweb 图表
+                        setTimeout(() => initSimilarwebChart(), 100);
+                    }
+                });
+            }
+
+            // 初始化图表
+            setTimeout(() => {
+                if (currentView === 'tranco') {
+                    initTrancoChart();
+                } else {
+                    initSimilarwebChart();
                 }
-                @endif
             }, 100);
         });
+
+        // 图表初始化函数
+        let rankingChart = null;
+        let trafficChart = null;
+
+        function initTrancoChart() {
+            if (typeof Chart === 'undefined') return;
+            
+            // 检测暗色模式
+            const isDarkMode = document.documentElement.classList.contains('dark') || 
+                              window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+            const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+
+            // 清除之前的图表
+            if (rankingChart) {
+                rankingChart.destroy();
+                rankingChart = null;
+            }
+
+            @if($domainRecord)
+            const rankingCtx = document.getElementById('rankingChart');
+            if (rankingCtx) {
+                const rankingData = @json($domainRecord->ranking_data['data'] ?? []);
+                
+                if (rankingData && rankingData.length > 0) {
+                    const rankingLabels = rankingData.map(item => {
+                        const date = new Date(item.date);
+                        return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+                    });
+                    const rankingValues = rankingData.map(item => item.rank);
+                    
+                    rankingChart = new Chart(rankingCtx, {
+                        type: 'line',
+                        data: {
+                            labels: rankingLabels,
+                            datasets: [{
+                                label: '域名排名',
+                                data: rankingValues,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#3b82f6',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                    titleColor: textColor,
+                                    bodyColor: textColor,
+                                    borderColor: gridColor,
+                                    borderWidth: 1,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(context) {
+                                            return '日期: ' + rankingData[context[0].dataIndex].date;
+                                        },
+                                        label: function(context) {
+                                            return '排名: #' + context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: gridColor, drawBorder: false },
+                                    ticks: { color: textColor, font: { size: 12 } }
+                                },
+                                y: {
+                                    reverse: true,
+                                    grid: { color: gridColor, drawBorder: false },
+                                    ticks: {
+                                        color: textColor,
+                                        font: { size: 12 },
+                                        callback: function(value) {
+                                            return '#' + value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            @endif
+        }
+
+        function initSimilarwebChart() {
+            if (typeof Chart === 'undefined') return;
+            
+            // 检测暗色模式
+            const isDarkMode = document.documentElement.classList.contains('dark') || 
+                              window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+            const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+
+            // 清除之前的图表
+            if (trafficChart) {
+                trafficChart.destroy();
+                trafficChart = null;
+            }
+
+            @if($similarwebRecord)
+            const trafficCtx = document.getElementById('trafficChart');
+            if (trafficCtx) {
+                const trafficData = @json($similarwebRecord->traffic_data['data'] ?? []);
+                
+                if (trafficData && trafficData.length > 0) {
+                    const trafficLabels = trafficData.map(item => {
+                        const date = new Date(item.month + '-01');
+                        return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' });
+                    });
+                    const trafficValues = trafficData.map(item => item.emv);
+                    
+                    trafficChart = new Chart(trafficCtx, {
+                        type: 'line',
+                        data: {
+                            labels: trafficLabels,
+                            datasets: [{
+                                label: '月访问量',
+                                data: trafficValues,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#10b981',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                    titleColor: textColor,
+                                    bodyColor: textColor,
+                                    borderColor: gridColor,
+                                    borderWidth: 1,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(context) {
+                                            return '月份: ' + trafficData[context[0].dataIndex].month;
+                                        },
+                                        label: function(context) {
+                                            return '访问量: ' + context.parsed.y.toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: gridColor, drawBorder: false },
+                                    ticks: { color: textColor, font: { size: 12 } }
+                                },
+                                y: {
+                                    grid: { color: gridColor, drawBorder: false },
+                                    ticks: {
+                                        color: textColor,
+                                        font: { size: 12 },
+                                        callback: function(value) {
+                                            return value.toLocaleString();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            @endif
+        }
     </script>
 </x-app-layout>
