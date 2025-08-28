@@ -96,7 +96,22 @@
                                         全球排名
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        流量来源
+                                        直接
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        搜索
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        推荐
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        社交
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        付费
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        邮件
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         更新时间
@@ -108,11 +123,10 @@
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
-                                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"></path>
-                                                </svg>
-                                            </div>
+                                            <img src="https://www.google.com/s2/favicons?domain={{ $result['domain'] }}" 
+                                                 alt="{{ $result['domain'] }}" 
+                                                 class="w-4 h-4 mr-3 rounded-sm"
+                                                 onerror="this.style.display='none'">
                                             <a href="{{ route('domain.ranking', $result['domain']) }}" 
                                                class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                                                 {{ $result['domain'] }}
@@ -128,45 +142,23 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         #{{ number_format($result['global_rank']) }}
                                     </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex flex-wrap gap-1">
-                                            <div class="flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded text-xs">
-                                                <span class="text-blue-800 dark:text-blue-200">直接</span>
-                                                <span class="ml-1 font-medium text-blue-900 dark:text-blue-100">
-                                                    {{ number_format($result['traffic_sources']['direct'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                            <div class="flex items-center px-2 py-1 bg-green-100 dark:bg-green-900 rounded text-xs">
-                                                <span class="text-green-800 dark:text-green-200">搜索</span>
-                                                <span class="ml-1 font-medium text-green-900 dark:text-green-100">
-                                                    {{ number_format($result['traffic_sources']['search'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                            <div class="flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900 rounded text-xs">
-                                                <span class="text-purple-800 dark:text-purple-200">推荐</span>
-                                                <span class="ml-1 font-medium text-purple-900 dark:text-purple-100">
-                                                    {{ number_format($result['traffic_sources']['referrals'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                            <div class="flex items-center px-2 py-1 bg-pink-100 dark:bg-pink-900 rounded text-xs">
-                                                <span class="text-pink-800 dark:text-pink-200">社交</span>
-                                                <span class="ml-1 font-medium text-pink-900 dark:text-pink-100">
-                                                    {{ number_format($result['traffic_sources']['social'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                            <div class="flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900 rounded text-xs">
-                                                <span class="text-orange-800 dark:text-orange-200">付费</span>
-                                                <span class="ml-1 font-medium text-orange-900 dark:text-orange-100">
-                                                    {{ number_format($result['traffic_sources']['paid'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                            <div class="flex items-center px-2 py-1 bg-red-100 dark:bg-red-900 rounded text-xs">
-                                                <span class="text-red-800 dark:text-red-200">邮件</span>
-                                                <span class="ml-1 font-medium text-red-900 dark:text-red-100">
-                                                    {{ number_format($result['traffic_sources']['mail'] * 100, 1) }}%
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                                        {{ number_format($result['traffic_sources']['direct'] * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                                        {{ number_format($result['traffic_sources']['search'] * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
+                                        {{ number_format($result['traffic_sources']['referrals'] * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-pink-600">
+                                        {{ number_format($result['traffic_sources']['social'] * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600">
+                                        {{ number_format($result['traffic_sources']['paid'] * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                                        {{ number_format($result['traffic_sources']['mail'] * 100, 1) }}%
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {{ \Carbon\Carbon::parse($result['last_updated'])->format('Y-m-d') }}
