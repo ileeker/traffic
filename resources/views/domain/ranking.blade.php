@@ -197,32 +197,30 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">流量来源</h3>
                         
-                        <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
-                            <div class="flex items-center space-x-6">
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">直接访问</p>
-                                    <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">搜索引擎</p>
-                                    <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">推荐链接</p>
-                                    <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">社交媒体</p>
-                                    <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">付费推广</p>
-                                    <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-xs text-gray-600 dark:text-gray-400">邮件</p>
-                                    <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
-                                </div>
+                        <div class="flex flex-wrap justify-center items-center gap-8">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">直接访问</p>
+                                <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">搜索引擎</p>
+                                <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">推荐链接</p>
+                                <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">社交媒体</p>
+                                <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">付费推广</p>
+                                <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">邮件</p>
+                                <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
                             </div>
                         </div>
                     </div>
@@ -233,11 +231,19 @@
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">热门关键词</h3>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap gap-3">
                             @foreach(explode(';', $similarwebRecord->top_keywords) as $keyword)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                    {{ trim($keyword) }}
-                                </span>
+                                @php
+                                    $trimmedKeyword = trim($keyword);
+                                    $googleSearchUrl = 'https://www.google.com/search?q=' . urlencode($trimmedKeyword);
+                                @endphp
+                                <a href="{{ $googleSearchUrl }}" target="_blank" 
+                                   class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200 hover:scale-105 transform">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    {{ $trimmedKeyword }}
+                                </a>
                             @endforeach
                         </div>
                     </div>
