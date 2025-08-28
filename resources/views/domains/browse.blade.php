@@ -208,59 +208,6 @@
                                 </tr>
                                 @endforelse
                             </tbody>
-                        </table>wider">
-                                        邮件
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse($domains as $domain)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <img src="https://www.google.com/s2/favicons?domain={{ $domain->domain }}" 
-                                                 alt="{{ $domain->domain }}" 
-                                                 class="w-4 h-4 mr-3 rounded-sm"
-                                                 onerror="this.style.display='none'">
-                                            <a href="{{ route('domain.ranking', $domain->domain) }}" 
-                                               class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
-                                                {{ $domain->domain }}
-                                            </a>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ number_format($domain->current_emv) }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600 dark:text-gray-400">
-                                        <div class="max-w-32 truncate">{{ $domain->category }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                                        {{ number_format($domain->ts_direct * 100, 1) }}%
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                                        {{ number_format($domain->ts_search * 100, 1) }}%
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
-                                        {{ number_format($domain->ts_referrals * 100, 1) }}%
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-pink-600">
-                                        {{ number_format($domain->ts_social * 100, 1) }}%
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600">
-                                        {{ number_format($domain->ts_paid_referrals * 100, 1) }}%
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
-                                        {{ number_format($domain->ts_mail * 100, 1) }}%
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="9" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                        暂无数据
-                                    </td>
-                                </tr>
-                                @endforelse
-                            </tbody>
                         </table>
                     </div>
                 </div>
