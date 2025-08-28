@@ -151,7 +151,7 @@
             if (!exportBtn) return;
 
             exportBtn.addEventListener('click', function() {
-                // 使用 {!! json_encode($results) !!} 避免 @json 在特定环境下被转义
+
                 const results = {!! json_encode($results) !!};
                 
                 // CSV 头部
