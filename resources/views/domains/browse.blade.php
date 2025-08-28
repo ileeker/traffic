@@ -167,17 +167,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        {!!
-                                            $domain->current_emv >= 1000000000 
-                                                ? number_format($domain->current_emv / 1000000000, 2) . 'B'
-                                                : ($domain->current_emv >= 1000000 
-                                                    ? number_format($domain->current_emv / 1000000, 2) . 'M'
-                                                    : ($domain->current_emv >= 1000 
-                                                        ? number_format($domain->current_emv / 1000, 2) . 'K'
-                                                        : number_format($domain->current_emv)
-                                                    )
-                                                )
-                                        !!}
+                                        {{ number_format($domain->current_emv) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                                         {{ number_format($domain->ts_direct * 100, 1) }}%
