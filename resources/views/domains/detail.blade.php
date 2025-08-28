@@ -150,7 +150,7 @@
             if (!exportBtn) return;
 
             exportBtn.addEventListener('click', function() {
-                // 使用 Laravel Echo 或 Livewire 时，@json 可能会被转义，使用 {!! !!} 避免
+               
                 const results = {!! json_encode($results) !!};
                 
                 // CSV 头部
