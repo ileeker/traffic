@@ -18,7 +18,7 @@
                     <div class="flex flex-wrap justify-between items-center gap-4">
                         
                         <!-- 右侧：快速跳转 -->
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2" style="float:right">
                             <label class="text-sm text-gray-600 dark:text-gray-400">跳转至：</label>
                             <input type="number" 
                                    id="pageJumpInput" 
@@ -28,7 +28,7 @@
                                    class="w-20 px-2 py-1 text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                             <span class="text-sm text-gray-600 dark:text-gray-400">/ {{ $domains->lastPage() }}</span>
                             <button onclick="jumpToPage()" 
-                                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
+                                    class="px-3 py-1 text-sm bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors duration-200">
                                 跳转
                             </button>
                         </div>
