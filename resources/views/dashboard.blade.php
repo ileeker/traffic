@@ -50,7 +50,7 @@
                     {{-- 多个域名查询表单 --}}
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">查询多个域名 (每行一个)</h3>
-                        <form action="{{ route('ranking.domains') }}" method="POST">
+                        <form action="{{ route('domains.ranking') }}" method="POST">
                             @csrf
                             <textarea name="domains" rows="4" placeholder="example.com&#10;google.com&#10;laravel.com" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300"></textarea>
                             <button type="submit" class="mt-2 inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
