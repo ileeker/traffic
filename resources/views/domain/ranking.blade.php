@@ -115,45 +115,79 @@
                 <!-- Similarweb 基本信息 -->
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">网站信息</h3>
-                            @if($similarwebRecord->title)
-                                <span class="text-sm text-gray-600 dark:text-gray-400">{{ $similarwebRecord->title }}</span>
-                            @endif
-                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">网站信息</h3>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <!-- 全球排名 -->
-                            <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">全球排名</p>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white">
-                                    #{{ number_format($similarwebRecord->global_rank) }}
-                                </p>
+                        <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-6">
+                                <!-- 全球排名 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-green-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">全球排名</p>
+                                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                            #{{ number_format($similarwebRecord->global_rank) }}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 分类排名 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-purple-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">分类排名</p>
+                                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                            #{{ number_format($similarwebRecord->category_rank) }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- 月访问量 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">月访问量</p>
+                                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                            {{ number_format($similarwebRecord->current_emv) }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- 跳出率 -->
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-red-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">跳出率</p>
+                                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                            {{ number_format($similarwebRecord->current_bounce_rate * 100, 1) }}%
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- 分类排名 -->
-                            <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">分类排名</p>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white">
-                                    #{{ number_format($similarwebRecord->category_rank) }}
-                                </p>
+                            <!-- 网站标题 -->
+                            @if($similarwebRecord->title)
+                            <div class="text-right">
+                                <p class="text-xs text-gray-600 dark:text-gray-400">网站标题</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $similarwebRecord->title }}</p>
                             </div>
-
-                            <!-- 月访问量 -->
-                            <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">月访问量</p>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white">
-                                    {{ number_format($similarwebRecord->current_emv) }}
-                                </p>
-                            </div>
-
-                            <!-- 跳出率 -->
-                            <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">跳出率</p>
-                                <p class="text-xl font-bold text-gray-900 dark:text-white">
-                                    {{ number_format($similarwebRecord->current_bounce_rate * 100, 1) }}%
-                                </p>
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -163,34 +197,52 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">流量来源</h3>
                         
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">直接访问</p>
-                                <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
-                            </div>
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">搜索引擎</p>
-                                <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
-                            </div>
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">推荐链接</p>
-                                <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
-                            </div>
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">社交媒体</p>
-                                <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
-                            </div>
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">付费推广</p>
-                                <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
-                            </div>
-                            <div class="text-center p-4 border dark:border-gray-600 rounded-lg">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">邮件</p>
-                                <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
+                        <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
+                            <div class="flex items-center space-x-6">
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">直接访问</p>
+                                    <p class="text-lg font-bold text-blue-600">{{ number_format($similarwebRecord->ts_direct * 100, 1) }}%</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">搜索引擎</p>
+                                    <p class="text-lg font-bold text-green-600">{{ number_format($similarwebRecord->ts_search * 100, 1) }}%</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">推荐链接</p>
+                                    <p class="text-lg font-bold text-purple-600">{{ number_format($similarwebRecord->ts_referrals * 100, 1) }}%</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">社交媒体</p>
+                                    <p class="text-lg font-bold text-pink-600">{{ number_format($similarwebRecord->ts_social * 100, 1) }}%</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">付费推广</p>
+                                    <p class="text-lg font-bold text-orange-600">{{ number_format($similarwebRecord->ts_paid_referrals * 100, 1) }}%</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">邮件</p>
+                                    <p class="text-lg font-bold text-red-600">{{ number_format($similarwebRecord->ts_mail * 100, 1) }}%</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 关键词信息 -->
+                @if($similarwebRecord->top_keywords)
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">热门关键词</h3>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(explode(';', $similarwebRecord->top_keywords) as $keyword)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    {{ trim($keyword) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- 流量趋势图 -->
                 @if(count($trafficData) > 0)
@@ -215,10 +267,36 @@
                         
                         <div class="space-y-4">
                             @foreach(array_slice($topCountries, 0, 5) as $country)
+                                @php
+                                    $countryNames = [
+                                        'DE' => '德国',
+                                        'DK' => '丹麦', 
+                                        'ES' => '西班牙',
+                                        'FR' => '法国',
+                                        'SE' => '瑞典',
+                                        'US' => '美国',
+                                        'CN' => '中国',
+                                        'GB' => '英国',
+                                        'JP' => '日本'
+                                    ];
+                                    $countryName = $countryNames[$country['CountryCode']] ?? $country['CountryCode'];
+                                    $flagEmojis = [
+                                        'DE' => '🇩🇪',
+                                        'DK' => '🇩🇰', 
+                                        'ES' => '🇪🇸',
+                                        'FR' => '🇫🇷',
+                                        'SE' => '🇸🇪',
+                                        'US' => '🇺🇸',
+                                        'CN' => '🇨🇳',
+                                        'GB' => '🇬🇧',
+                                        'JP' => '🇯🇵'
+                                    ];
+                                    $flag = $flagEmojis[$country['CountryCode']] ?? '🌐';
+                                @endphp
                                 <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <span class="text-2xl mr-3">{{ $country['CountryCode'] === 'DE' ? '🇩🇪' : ($country['CountryCode'] === 'DK' ? '🇩🇰' : ($country['CountryCode'] === 'ES' ? '🇪🇸' : ($country['CountryCode'] === 'FR' ? '🇫🇷' : '🇸🇪'))) }}</span>
-                                        <span class="font-medium text-gray-900 dark:text-white">{{ $country['CountryCode'] }}</span>
+                                    <div class="flex items-center min-w-24">
+                                        <span class="text-2xl mr-3">{{ $flag }}</span>
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ $countryName }}</span>
                                     </div>
                                     <div class="flex items-center space-x-4 flex-1 ml-6">
                                         <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
