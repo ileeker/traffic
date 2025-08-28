@@ -414,60 +414,6 @@
                     </div>
                 </div>
                 @endif
-
-                <!-- 地理分布 -->
-                @if(count($topCountries) > 0)
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">地理分布 (前5名)</h3>
-                        
-                        <div class="space-y-4">
-                            @foreach(array_slice($topCountries, 0, 5) as $country)
-                                @php
-                                    $countryNames = [
-                                        'DE' => '德国',
-                                        'DK' => '丹麦', 
-                                        'ES' => '西班牙',
-                                        'FR' => '法国',
-                                        'SE' => '瑞典',
-                                        'US' => '美国',
-                                        'CN' => '中国',
-                                        'GB' => '英国',
-                                        'JP' => '日本'
-                                    ];
-                                    $countryName = $countryNames[$country['CountryCode']] ?? $country['CountryCode'];
-                                    $flagEmojis = [
-                                        'DE' => '🇩🇪',
-                                        'DK' => '🇩🇰', 
-                                        'ES' => '🇪🇸',
-                                        'FR' => '🇫🇷',
-                                        'SE' => '🇸🇪',
-                                        'US' => '🇺🇸',
-                                        'CN' => '🇨🇳',
-                                        'GB' => '🇬🇧',
-                                        'JP' => '🇯🇵'
-                                    ];
-                                    $flag = $flagEmojis[$country['CountryCode']] ?? '🌐';
-                                @endphp
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center min-w-24">
-                                        <span class="text-2xl mr-3">{{ $flag }}</span>
-                                        <span class="font-medium text-gray-900 dark:text-white">{{ $countryName }}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-4 flex-1 ml-6">
-                                        <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ $country['Value'] * 100 }}%"></div>
-                                        </div>
-                                        <span class="text-sm font-medium text-gray-900 dark:text-white min-w-12">
-                                            {{ number_format($country['Value'] * 100, 1) }}%
-                                        </span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-                @endif
                 @endif
             </div>
         </div>
