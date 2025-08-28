@@ -16,10 +16,6 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-4">
                     <div class="flex flex-wrap justify-between items-center gap-4">
-                        <!-- 左侧：标准分页 -->
-                        <div class="flex-1">
-                            {{ $domains->appends(request()->query())->links() }}
-                        </div>
                         
                         <!-- 右侧：快速跳转 -->
                         <div class="flex items-center gap-2">
