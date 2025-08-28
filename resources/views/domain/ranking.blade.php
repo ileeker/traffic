@@ -1,4 +1,186 @@
-<x-app-layout>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js 未正确加载');
+                    return;
+                }
+
+                // 检测暗色模式
+                const isDarkMode = document.documentElement.classList.contains('dark') || 
+                                  window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+                const gridColor = isDarkMode ? '#374151' : '#e5e7eb';
+
+                // 排名趋势图
+                @if($domainRecord)
+                const rankingCtx = document.getElementById('rankingChart');
+                if (rankingCtx) {
+                    const rankingData = @json($domainRecord->ranking_data['data'] ?? []);
+                    
+                    if (rankingData && rankingData.length > 0) {
+                        const rankingLabels = rankingData.map(item => {
+                            const date = new Date(item.date);
+                            return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+                        });
+                        const rankingValues = rankingData.map(item => item.rank);
+                        
+                        new Chart(rankingCtx, {
+                            type: 'line',
+                            data: {
+                                labels: rankingLabels,
+                                datasets: [{
+                                    label: '域名排名',
+                                    data: rankingValues,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: '#3b82f6',
+                                    pointBorderColor: '#ffffff',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 6,
+                                    pointHoverRadius: 8,
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    intersect: false,
+                                    mode: 'index',
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                        titleColor: textColor,
+                                        bodyColor: textColor,
+                                        borderColor: gridColor,
+                                        borderWidth: 1,
+                                        displayColors: false,
+                                        callbacks: {
+                                            title: function(context) {
+                                                return '日期: ' + rankingData[context[0].dataIndex].date;
+                                            },
+                                            label: function(context) {
+                                                return '排名: #' + context.parsed.y.toLocaleString();
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: { color: gridColor, drawBorder: false },
+                                        ticks: { color: textColor, font: { size: 12 } }
+                                    },
+                                    y: {
+                                        reverse: true,
+                                        grid: { color: gridColor, drawBorder: false },
+                                        ticks: {
+                                            color: textColor,
+                                            font: { size: 12 },
+                                            callback: function(value) {
+                                                return '#' + value.toLocaleString();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        rankingCtx.parentElement.innerHTML = '<div class="text-center p-8 text-gray-500">暂无排名数据</div>';
+                    }
+                }
+                @endif
+
+                // 流量趋势图
+                @if($similarwebRecord)
+                const trafficCtx = document.getElementById('trafficChart');
+                if (trafficCtx) {
+                    const trafficData = @json($similarwebRecord->traffic_data['data'] ?? []);
+                    
+                    if (trafficData && trafficData.length > 0) {
+                        const trafficLabels = trafficData.map(item => {
+                            const date = new Date(item.month + '-01');
+                            return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short' });
+                        });
+                        const trafficValues = trafficData.map(item => item.emv);
+                        
+                        new Chart(trafficCtx, {
+                            type: 'line',
+                            data: {
+                                labels: trafficLabels,
+                                datasets: [{
+                                    label: '月访问量',
+                                    data: trafficValues,
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    borderWidth: 3,
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointBackgroundColor: '#10b981',
+                                    pointBorderColor: '#ffffff',
+                                    pointBorderWidth: 2,
+                                    pointRadius: 6,
+                                    pointHoverRadius: 8,
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                    intersect: false,
+                                    mode: 'index',
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                        titleColor: textColor,
+                                        bodyColor: textColor,
+                                        borderColor: gridColor,
+                                        borderWidth: 1,
+                                        displayColors: false,
+                                        callbacks: {
+                                            title: function(context) {
+                                                return '月份: ' + trafficData[context[0].dataIndex].month;
+                                            },
+                                            label: function(context) {
+                                                return '访问量: ' + context.parsed.y.toLocaleString();
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        grid: { color: gridColor, drawBorder: false },
+                                        ticks: { color: textColor, font: { size: 12 } }
+                                    },
+                                    y: {
+                                        grid: { color: gridColor, drawBorder: false },
+                                        ticks: {
+                                            color: textColor,
+                                            font: { size: 12 },
+                                            callback: function(value) {
+                                                return value.toLocaleString();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        trafficCtx.parentElement.innerHTML = '<div class="text-center p-8 text-gray-500">暂无流量数据</div>';
+                    }
+                }
+                @endif
+            }, 100);
+        });
+    </script>
+</x-app-layout><x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">

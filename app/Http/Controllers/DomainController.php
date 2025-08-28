@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 class DomainController extends Controller
 {
     /**
-     * 获取指定域名的排名信息并显示页面
+     * 获取指定域名的排名信息和 Similarweb 数据并显示页面
      *
      * @param string $domain
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
@@ -18,16 +18,19 @@ class DomainController extends Controller
     public function getRanking(string $domain)
     {
         try {
-            // 根据域名查找记录
+            // 根据域名查找排名记录
             $domainRecord = Domain::where('domain', $domain)->first();
             
-            // 如果未找到域名记录
-            if (!$domainRecord) {
-                return redirect()->back()->with('error', '域名 ' . $domain . ' 未找到');
+            // 根据域名查找 SimilarwebDomain 记录
+            $similarwebRecord = SimilarwebDomain::where('domain', $domain)->first();
+            
+            // 如果两个记录都未找到
+            if (!$domainRecord && !$similarwebRecord) {
+                return redirect()->back()->with('error', '域名 ' . $domain . ' 未找到任何记录');
             }
             
             // 返回视图并传递数据
-            return view('domain.ranking', compact('domainRecord'));
+            return view('domain.ranking', compact('domainRecord', 'similarwebRecord'));
             
         } catch (\Exception $e) {
             // 处理异常情况
