@@ -21,40 +21,39 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+            
             <div class="grid grid-cols-3 gap-6">
-    {{-- 查询总数 --}}
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
-        <div class="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M12 21a9 9 0 110-18 9 9 0 010 18z" /></svg>
-        </div>
-        <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">查询域名总数</div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($domains) }}</div>
-        </div>
-    </div>
-    
-    {{-- 找到数据 --}}
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
-        <div class="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-        </div>
-        <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">成功找到</div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($foundDomains) }}</div>
-        </div>
-    </div>
-    
-    {{-- 未找到数据 --}}
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
-        <div class="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-        </div>
-        <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">未能找到</div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($notFoundDomains) }}</div>
-        </div>
-    </div>
-</div>
+                {{-- 查询总数 --}}
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M12 21a9 9 0 110-18 9 9 0 010 18z" /></svg>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">查询域名总数</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($domains) }}</div>
+                    </div>
+                </div>
+                {{-- 找到数据 --}}
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">成功找到</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($foundDomains) }}</div>
+                    </div>
+                </div>
+                {{-- 未找到数据 --}}
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-6">
+                    <div class="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">未能找到</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white">{{ count($notFoundDomains) }}</div>
+                    </div>
+                </div>
+            </div>
 
             @if(count($results) > 0)
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-xl border border-gray-200 dark:border-gray-700">
@@ -152,7 +151,7 @@
             if (!exportBtn) return;
 
             exportBtn.addEventListener('click', function() {
-               
+                // 使用 {!! json_encode($results) !!} 避免 @json 在特定环境下被转义
                 const results = {!! json_encode($results) !!};
                 
                 // CSV 头部
@@ -173,7 +172,7 @@
                         (result.traffic_sources.mail * 100).toFixed(1),
                         new Date(result.last_updated).toISOString().split('T')[0]
                     ];
-                    // 处理可能包含逗号的字段
+                    // 处理可能包含逗号的字段，用双引号包裹
                     const csvRow = row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
                     csvContent += csvRow + '\n';
                 });
