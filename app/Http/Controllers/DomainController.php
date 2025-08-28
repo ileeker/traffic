@@ -126,12 +126,89 @@ class DomainController extends Controller
     }
 
     /**
-     * 显示批量查询页面
+     * 浏览域名数据 - 分页展示上个月数据
      *
+     * @param Request $request
      * @return \Illuminate\View\View
      */
-    public function getDomainsRanking()
+    public function browseDomains(Request $request)
     {
-        return view('domains.ranking');
+        try {
+            // 获取上个月的月份字符串 (如: 2025-07)
+            $lastMonth = now()->subMonth()->format('Y-m');
+            
+            // 获取排序参数
+            $sortBy = $request->get('sort', 'current_emv'); // 默认按访问量排序
+            $sortOrder = $request->get('order', 'desc'); // 默认降序
+            
+            // 验证排序字段
+            $allowedSorts = [
+                'current_emv',
+                'category', 
+                'ts_direct',
+                'ts_search',
+                'ts_referrals', 
+                'ts_social',
+                'ts_paid_referrals',
+                'ts_mail'
+            ];
+            
+            if (!in_array($sortBy, $allowedSorts)) {
+                $sortBy = 'current_emv';
+            }
+            
+            // 验证排序顺序
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'desc';
+            }
+
+            // 构建查询
+            $query = SimilarwebDomain::where('current_month', $lastMonth)
+                ->select([
+                    'domain',
+                    'current_emv',
+                    'category',
+                    'ts_direct',
+                    'ts_search', 
+                    'ts_referrals',
+                    'ts_social',
+                    'ts_paid_referrals',
+                    'ts_mail'
+                ]);
+
+            // 应用排序
+            if ($sortBy === 'category') {
+                $query->orderBy('category', $sortOrder)
+                      ->orderBy('current_emv', 'desc'); // 分类相同时按访问量排序
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            // 分页查询 - 每页100条
+            $domains = $query->paginate(100);
+            
+            // 获取统计信息
+            $totalCount = SimilarwebDomain::where('current_month', $lastMonth)->count();
+            
+            // 获取分类统计
+            $categoryStats = SimilarwebDomain::where('current_month', $lastMonth)
+                ->selectRaw('category, COUNT(*) as count')
+                ->groupBy('category')
+                ->orderBy('count', 'desc')
+                ->limit(10)
+                ->get();
+
+            return view('domains.browse', compact(
+                'domains',
+                'lastMonth', 
+                'sortBy',
+                'sortOrder',
+                'totalCount',
+                'categoryStats'
+            ));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', '数据加载失败：' . $e->getMessage());
+        }
     }
 }

@@ -34,6 +34,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
     Route::get('/domains', [DomainController::class, 'getDomainsRanking'])->name('domains.ranking');
 
+    // 域名数据浏览路由
+    Route::get('/domains/browse', [DomainController::class, 'browseDomains'])->name('domains.browse');
+
 });
 
 require __DIR__.'/auth.php';
