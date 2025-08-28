@@ -12,30 +12,6 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <!-- 顶部分页导航 -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-4">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        
-                        <!-- 右侧：快速跳转 -->
-                        <div class="flex items-center gap-2" style="float:right">
-                            <label class="text-sm text-gray-600 dark:text-gray-400">跳转至：</label>
-                            <input type="number" 
-                                   id="pageJumpInput" 
-                                   min="1" 
-                                   max="{{ $domains->lastPage() }}"
-                                   value="{{ $domains->currentPage() }}"
-                                   class="w-20 px-2 py-1 text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">/ {{ $domains->lastPage() }}</span>
-                            <button onclick="jumpToPage()" 
-                                    class="px-3 py-1 text-sm bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors duration-200">
-                                跳转
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- 统计信息、排序控制和过滤器 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
@@ -89,6 +65,21 @@
 
                         <!-- 排序和过滤控制 -->
                         <div class="flex items-center space-x-4">
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">跳转：</label>
+                                <input type="number" 
+                                       id="pageJumpInput"
+                                       placeholder="页码"
+                                       value="{{ $domains->currentPage() }}"
+                                       min="1"
+                                       max="{{ $domains->lastPage() }}"
+                                       class="w-16 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                <button id="pageJumpBtn" 
+                                        class="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200 text-sm">
+                                    GO
+                                </button>
+                            </div>
                             <!-- 过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
@@ -247,29 +238,34 @@
     </div>
 
     <script>
-        // 页面跳转函数
-        function jumpToPage() {
-            const input = document.getElementById('pageJumpInput');
-            const page = parseInt(input.value);
-            const maxPage = parseInt(input.getAttribute('max'));
-            
-            if (page >= 1 && page <= maxPage) {
-                const url = new URL(window.location);
-                url.searchParams.set('page', page);
-                window.location.href = url.toString();
-            } else {
-                alert('请输入有效的页数（1-' + maxPage + '）');
-                input.value = {{ $domains->currentPage() }};
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
-            // 回车键触发跳转
-            document.getElementById('pageJumpInput').addEventListener('keypress', function(e) {
+            // 页码跳转功能
+            const pageJumpInput = document.getElementById('pageJumpInput');
+            const pageJumpBtn = document.getElementById('pageJumpBtn');
+            
+            function jumpToPage() {
+                const page = parseInt(pageJumpInput.value);
+                const maxPage = parseInt(pageJumpInput.getAttribute('max'));
+                
+                if (page && page >= 1 && page <= maxPage) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('page', page);
+                    window.location.href = url.toString();
+                } else {
+                    alert('请输入有效的页码（1 - ' + maxPage + '）');
+                    pageJumpInput.value = {{ $domains->currentPage() }};
+                }
+            }
+            
+            pageJumpBtn.addEventListener('click', jumpToPage);
+            
+            // 回车键跳转
+            pageJumpInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     jumpToPage();
                 }
             });
+            
             // 排序选择变化时重新加载页面
             document.getElementById('sortSelect').addEventListener('change', function() {
                 const [sort, order] = this.value.split('-');
