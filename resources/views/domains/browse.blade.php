@@ -167,7 +167,19 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ number_format($domain->current_emv) }}
+                                        @php
+                                            $emv = $domain->current_emv;
+                                            if ($emv >= 1000000000) {
+                                                $formatted = number_format($emv / 1000000000, 2) . 'B';
+                                            } elseif ($emv >= 1000000) {
+                                                $formatted = number_format($emv / 1000000, 2) . 'M';
+                                            } elseif ($emv >= 1000) {
+                                                $formatted = number_format($emv / 1000, 2) . 'K';
+                                            } else {
+                                                $formatted = number_format($emv);
+                                            }
+                                        @endphp
+                                        {{ $formatted }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                                         {{ number_format($domain->ts_direct * 100, 1) }}%
