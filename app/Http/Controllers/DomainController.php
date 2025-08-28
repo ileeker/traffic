@@ -141,10 +141,13 @@ class DomainController extends Controller
             $sortBy = $request->get('sort', 'current_emv'); // 默认按访问量排序
             $sortOrder = $request->get('order', 'desc'); // 默认降序
             
+            // 获取过滤参数
+            $filterField = $request->get('filter_field');
+            $filterValue = $request->get('filter_value');
+            
             // 验证排序字段
             $allowedSorts = [
                 'current_emv',
-                'category', 
                 'ts_direct',
                 'ts_search',
                 'ts_referrals', 
@@ -167,7 +170,6 @@ class DomainController extends Controller
                 ->select([
                     'domain',
                     'current_emv',
-                    'category',
                     'ts_direct',
                     'ts_search', 
                     'ts_referrals',
@@ -176,13 +178,22 @@ class DomainController extends Controller
                     'ts_mail'
                 ]);
 
-            // 应用排序
-            if ($sortBy === 'category') {
-                $query->orderBy('category', $sortOrder)
-                      ->orderBy('current_emv', 'desc'); // 分类相同时按访问量排序
-            } else {
-                $query->orderBy($sortBy, $sortOrder);
+            // 应用过滤条件
+            if ($filterField && $filterValue !== null && $filterValue !== '') {
+                if (in_array($filterField, $allowedSorts)) {
+                    if (in_array($filterField, ['ts_direct', 'ts_search', 'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail'])) {
+                        // 流量来源字段：输入的是百分比，需要转换为小数
+                        $filterValue = floatval($filterValue) / 100;
+                    } else {
+                        // 访问量字段：直接使用数值
+                        $filterValue = floatval($filterValue);
+                    }
+                    $query->where($filterField, '>=', $filterValue);
+                }
             }
+
+            // 应用排序
+            $query->orderBy($sortBy, $sortOrder);
 
             // 分页查询 - 每页100条
             $domains = $query->paginate(100);
@@ -190,13 +201,8 @@ class DomainController extends Controller
             // 获取统计信息
             $totalCount = SimilarwebDomain::where('current_month', $lastMonth)->count();
             
-            // 获取分类统计
-            $categoryStats = SimilarwebDomain::where('current_month', $lastMonth)
-                ->selectRaw('category, COUNT(*) as count')
-                ->groupBy('category')
-                ->orderBy('count', 'desc')
-                ->limit(10)
-                ->get();
+            // 获取过滤后的统计信息
+            $filteredCount = $query->count();
 
             return view('domains.browse', compact(
                 'domains',
@@ -204,7 +210,9 @@ class DomainController extends Controller
                 'sortBy',
                 'sortOrder',
                 'totalCount',
-                'categoryStats'
+                'filteredCount',
+                'filterField',
+                'filterValue'
             ));
 
         } catch (\Exception $e) {
