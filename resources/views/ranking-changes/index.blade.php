@@ -67,24 +67,6 @@
                                 </button>
                             </div>
                             
-                            <!-- 趋势过滤器 -->
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">趋势：</label>
-                                <select id="trendFilter" 
-                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="all" {{ $trendFilter == 'all' ? 'selected' : '' }}>全部</option>
-                                    <option value="any_up" {{ $trendFilter == 'any_up' ? 'selected' : '' }}>任意上升</option>
-                                    <option value="all_up" {{ $trendFilter == 'all_up' ? 'selected' : '' }}>全部上升</option>
-                                    <option value="daily_up" {{ $trendFilter == 'daily_up' ? 'selected' : '' }}>日上升</option>
-                                    <option value="week_up" {{ $trendFilter == 'week_up' ? 'selected' : '' }}>周上升</option>
-                                    <option value="biweek_up" {{ $trendFilter == 'biweek_up' ? 'selected' : '' }}>双周上升</option>
-                                    <option value="triweek_up" {{ $trendFilter == 'triweek_up' ? 'selected' : '' }}>三周上升</option>
-                                    <option value="month_up" {{ $trendFilter == 'month_up' ? 'selected' : '' }}>月上升</option>
-                                    <option value="quarter_up" {{ $trendFilter == 'quarter_up' ? 'selected' : '' }}>季度上升</option>
-                                    <option value="year_up" {{ $trendFilter == 'year_up' ? 'selected' : '' }}>年上升</option>
-                                </select>
-                            </div>
-                            
                             <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
@@ -109,7 +91,7 @@
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                                     应用
                                 </button>
-                                @if($filterField || $trendFilter)
+                                @if($filterField)
                                 <button id="clearFilter" 
                                         class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
                                     清除
@@ -122,24 +104,24 @@
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 ↑</option>
-                                    <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 ↓</option>
-                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 ↑</option>
-                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 ↓</option>
-                                    <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日变化 ↓</option>
-                                    <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日变化 ↑</option>
-                                    <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周变化 ↓</option>
-                                    <option value="week_change-asc" {{ $sortBy == 'week_change' && $sortOrder == 'asc' ? 'selected' : '' }}>周变化 ↑</option>
-                                    <option value="biweek_change-desc" {{ $sortBy == 'biweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>双周变化 ↓</option>
-                                    <option value="biweek_change-asc" {{ $sortBy == 'biweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>双周变化 ↑</option>
-                                    <option value="triweek_change-desc" {{ $sortBy == 'triweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>三周变化 ↓</option>
-                                    <option value="triweek_change-asc" {{ $sortBy == 'triweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>三周变化 ↑</option>
-                                    <option value="month_change-desc" {{ $sortBy == 'month_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月变化 ↓</option>
-                                    <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月变化 ↑</option>
-                                    <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度变化 ↓</option>
-                                    <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度变化 ↑</option>
-                                    <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年变化 ↓</option>
-                                    <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年变化 ↑</option>
+                                    <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 (1→100)</option>
+                                    <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 (100→1)</option>
+                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
+                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
+                                    <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日上升最多</option>
+                                    <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日下降最多</option>
+                                    <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周上升最多</option>
+                                    <option value="week_change-asc" {{ $sortBy == 'week_change' && $sortOrder == 'asc' ? 'selected' : '' }}>周下降最多</option>
+                                    <option value="biweek_change-desc" {{ $sortBy == 'biweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>双周上升最多</option>
+                                    <option value="biweek_change-asc" {{ $sortBy == 'biweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>双周下降最多</option>
+                                    <option value="triweek_change-desc" {{ $sortBy == 'triweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>三周上升最多</option>
+                                    <option value="triweek_change-asc" {{ $sortBy == 'triweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>三周下降最多</option>
+                                    <option value="month_change-desc" {{ $sortBy == 'month_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月上升最多</option>
+                                    <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
+                                    <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度上升最多</option>
+                                    <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
+                                    <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年上升最多</option>
+                                    <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option>
                                 </select>
                             </div>
                         </div>
@@ -372,18 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 趋势过滤器
-    document.getElementById('trendFilter').addEventListener('change', function() {
-        const url = new URL(window.location);
-        if (this.value === 'all') {
-            url.searchParams.delete('trend_filter');
-        } else {
-            url.searchParams.set('trend_filter', this.value);
-        }
-        url.searchParams.delete('page'); // 重置到第一页
-        window.location.href = url.toString();
-    });
-    
     // 排序选择变化时重新加载页面
     document.getElementById('sortSelect').addEventListener('change', function() {
         const [sort, order] = this.value.split('-');
@@ -420,7 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = new URL(window.location);
             url.searchParams.delete('filter_field');
             url.searchParams.delete('filter_value');
-            url.searchParams.delete('trend_filter');
             url.searchParams.delete('page'); // 重置到第一页
             window.location.href = url.toString();
         });
