@@ -180,11 +180,8 @@
                                                 {{ $domain->domain }}
                                             </a>
                                             <a href="https://{{ $domain->domain }}" target="_blank" title="访问 {{ $domain->domain }}">
-                                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                    <rect x="3" y="6" width="12" height="12" rx="2" ry="2" stroke-width="2" stroke-linejoin="round"></rect>
-                                                    <path d="M11 13l9-9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                                    <path d="M15 4h5v5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                                </svg>
+                                                <!-- 纯文本符号 -->
+                                                <span class="text-green-500 text-xl"> ↗</span>
                                             </a>
                                         </div>
                                     </td>
