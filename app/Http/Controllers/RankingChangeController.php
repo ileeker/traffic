@@ -21,7 +21,6 @@ class RankingChangeController extends Controller
             $sortBy = $request->get('sort', 'record_date');
             $sortOrder = $request->get('order', 'desc');
             $filterField = $request->get('filter_field');
-            $filterOperator = $request->get('filter_operator', '>=');
             $filterValue = $request->get('filter_value');
             $dateFilter = $request->get('date_filter');
             
@@ -48,11 +47,11 @@ class RankingChangeController extends Controller
                 $sortOrder = 'desc';
             }
             
-            // 验证筛选操作符
-            $allowedOperators = ['>', '<', '>=', '<=', '=', '!='];
-            if (!in_array($filterOperator, $allowedOperators)) {
-                $filterOperator = '>=';
-            }
+            // 验证筛选操作符 - 移除，简化为只使用 ">="
+            // $allowedOperators = ['>', '<', '>=', '<=', '=', '!='];
+            // if (!in_array($filterOperator, $allowedOperators)) {
+            //     $filterOperator = '>=';
+            // }
 
             // 构建查询
             $query = RankingChange::select([
@@ -118,7 +117,7 @@ class RankingChangeController extends Controller
                 
                 if (in_array($filterField, $filterFields)) {
                     $filterValue = (int)$filterValue;
-                    $query->where($filterField, $filterOperator, $filterValue);
+                    $query->where($filterField, '>=', $filterValue);
                 }
             }
 
@@ -154,7 +153,6 @@ class RankingChangeController extends Controller
                 'sortBy',
                 'sortOrder',
                 'filterField',
-                'filterOperator',
                 'filterValue',
                 'dateFilter',
                 'totalCount',

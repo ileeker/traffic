@@ -1,160 +1,228 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('域名排名变化数据') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                域名排名变化数据
+            </h2>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+                总计 {{ number_format($totalCount) }} 条记录
+            </div>
+        </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-full mx-auto sm:px-6 lg:px-8">
-            <!-- 统计信息卡片 -->
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">总域名数</div>
-                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalCount) }}</div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">今日记录</div>
-                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ number_format($todayCount) }}</div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">筛选结果</div>
-                    <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ number_format($filteredCount) }}</div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                    <div class="text-gray-600 dark:text-gray-400 text-sm">最新日期</div>
-                    <div class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $latestDate ?? '暂无数据' }}</div>
-                </div>
-            </div>
-
-            <!-- 筛选和排序表单 -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+    <div class="py-12">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8 space-y-6">
+            <!-- 统计信息、排序控制和过滤器 -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <form method="GET" action="{{ route('ranking-changes.index') }}" class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- 日期筛选 -->
-                            <div>
-                                <label for="date_filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">日期筛选</label>
-                                <select name="date_filter" id="date_filter" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value="">全部日期</option>
-                                    <option value="today" {{ $dateFilter === 'today' ? 'selected' : '' }}>今天</option>
-                                    <option value="yesterday" {{ $dateFilter === 'yesterday' ? 'selected' : '' }}>昨天</option>
-                                    <option value="last_7_days" {{ $dateFilter === 'last_7_days' ? 'selected' : '' }}>最近7天</option>
-                                    <option value="last_30_days" {{ $dateFilter === 'last_30_days' ? 'selected' : '' }}>最近30天</option>
-                                    <option value="this_month" {{ $dateFilter === 'this_month' ? 'selected' : '' }}>本月</option>
-                                    <option value="last_month" {{ $dateFilter === 'last_month' ? 'selected' : '' }}>上月</option>
-                                </select>
+                    <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
+                        <!-- 统计信息 -->
+                        <div class="flex items-center space-x-6">
+                            <div class="flex items-center">
+                                <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">当前页面</p>
+                                    <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                        第 {{ $rankingChanges->currentPage() }} 页 / 共 {{ $rankingChanges->lastPage() }} 页
+                                    </p>
+                                </div>
                             </div>
 
-                            <!-- 排序字段 -->
-                            <div>
-                                <label for="sort" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">排序字段</label>
-                                <select name="sort" id="sort" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value="record_date" {{ $sortBy === 'record_date' ? 'selected' : '' }}>记录日期</option>
-                                    <option value="domain" {{ $sortBy === 'domain' ? 'selected' : '' }}>域名</option>
-                                    <option value="current_ranking" {{ $sortBy === 'current_ranking' ? 'selected' : '' }}>当前排名</option>
-                                    <option value="daily_change" {{ $sortBy === 'daily_change' ? 'selected' : '' }}>日变化</option>
-                                    <option value="week_change" {{ $sortBy === 'week_change' ? 'selected' : '' }}>周变化</option>
-                                    <option value="biweek_change" {{ $sortBy === 'biweek_change' ? 'selected' : '' }}>双周变化</option>
-                                    <option value="triweek_change" {{ $sortBy === 'triweek_change' ? 'selected' : '' }}>三周变化</option>
-                                    <option value="month_change" {{ $sortBy === 'month_change' ? 'selected' : '' }}>月变化</option>
-                                    <option value="quarter_change" {{ $sortBy === 'quarter_change' ? 'selected' : '' }}>季度变化</option>
-                                    <option value="year_change" {{ $sortBy === 'year_change' ? 'selected' : '' }}>年变化</option>
-                                </select>
+                            <div class="flex items-center">
+                                <div class="p-2 bg-green-500 bg-opacity-10 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">显示范围</p>
+                                    <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                        {{ $rankingChanges->firstItem() ?? 0 }} - {{ $rankingChanges->lastItem() ?? 0 }}
+                                    </p>
+                                </div>
                             </div>
 
-                            <!-- 排序顺序 -->
-                            <div>
-                                <label for="order" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">排序顺序</label>
-                                <select name="order" id="order" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value="desc" {{ $sortOrder === 'desc' ? 'selected' : '' }}>降序</option>
-                                    <option value="asc" {{ $sortOrder === 'asc' ? 'selected' : '' }}>升序</option>
-                                </select>
+                            <div class="flex items-center">
+                                <div class="p-2 bg-purple-500 bg-opacity-10 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">今日记录</p>
+                                    <p class="text-lg font-bold text-purple-600">
+                                        {{ number_format($todayCount) }} 条
+                                    </p>
+                                </div>
                             </div>
 
-                            <!-- 筛选字段 -->
-                            <div>
-                                <label for="filter_field" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">筛选字段</label>
-                                <select name="filter_field" id="filter_field" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value="">无筛选</option>
-                                    <option value="current_ranking" {{ $filterField === 'current_ranking' ? 'selected' : '' }}>当前排名</option>
-                                    <option value="daily_change" {{ $filterField === 'daily_change' ? 'selected' : '' }}>日变化</option>
-                                    <option value="week_change" {{ $filterField === 'week_change' ? 'selected' : '' }}>周变化</option>
-                                    <option value="biweek_change" {{ $filterField === 'biweek_change' ? 'selected' : '' }}>双周变化</option>
-                                    <option value="triweek_change" {{ $filterField === 'triweek_change' ? 'selected' : '' }}>三周变化</option>
-                                    <option value="month_change" {{ $filterField === 'month_change' ? 'selected' : '' }}>月变化</option>
-                                    <option value="quarter_change" {{ $filterField === 'quarter_change' ? 'selected' : '' }}>季度变化</option>
-                                    <option value="year_change" {{ $filterField === 'year_change' ? 'selected' : '' }}>年变化</option>
-                                </select>
+                            @if($filterField && $filterValue !== null && $filterValue !== '')
+                            <div class="flex items-center">
+                                <div class="p-2 bg-orange-500 bg-opacity-10 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">过滤结果</p>
+                                    <p class="text-lg font-bold text-orange-600">
+                                        {{ number_format($filteredCount ?? 0) }} 条
+                                    </p>
+                                </div>
                             </div>
+                            @endif
+                        </div>
 
-                            <!-- 筛选操作符 -->
-                            <div>
-                                <label for="filter_operator" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">操作符</label>
-                                <select name="filter_operator" id="filter_operator" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                    <option value=">=" {{ $filterOperator === '>=' ? 'selected' : '' }}>大于等于</option>
-                                    <option value=">" {{ $filterOperator === '>' ? 'selected' : '' }}>大于</option>
-                                    <option value="<=" {{ $filterOperator === '<=' ? 'selected' : '' }}>小于等于</option>
-                                    <option value="<" {{ $filterOperator === '<' ? 'selected' : '' }}>小于</option>
-                                    <option value="=" {{ $filterOperator === '=' ? 'selected' : '' }}>等于</option>
-                                    <option value="!=" {{ $filterOperator === '!=' ? 'selected' : '' }}>不等于</option>
-                                </select>
-                            </div>
-
-                            <!-- 筛选值 -->
-                            <div>
-                                <label for="filter_value" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">筛选值</label>
-                                <input type="number" name="filter_value" id="filter_value" value="{{ $filterValue }}" 
-                                       class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                       placeholder="输入数值">
-                            </div>
-
-                            <!-- 提交按钮 -->
-                            <div class="flex items-end">
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">
-                                    应用筛选
+                        <!-- 控制面板 -->
+                        <div class="flex items-center space-x-4">
+                            <!-- 页码跳转 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">跳转：</label>
+                                <input type="number" 
+                                       id="pageJumpInput"
+                                       placeholder="页码"
+                                       value="{{ $rankingChanges->currentPage() }}"
+                                       min="1"
+                                       max="{{ $rankingChanges->lastPage() }}"
+                                       class="w-16 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                <button id="pageJumpBtn" 
+                                        class="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200 text-sm">
+                                    GO
                                 </button>
                             </div>
-                        </div>
 
-                        <!-- 重置按钮 -->
-                        <div class="flex justify-end">
-                            <a href="{{ route('ranking-changes.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-200">
-                                重置筛选
-                            </a>
+                            <!-- 日期过滤器 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">日期：</label>
+                                <select id="dateFilter" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="">全部日期</option>
+                                    <option value="today" {{ $dateFilter == 'today' ? 'selected' : '' }}>今天</option>
+                                    <option value="yesterday" {{ $dateFilter == 'yesterday' ? 'selected' : '' }}>昨天</option>
+                                    <option value="last_7_days" {{ $dateFilter == 'last_7_days' ? 'selected' : '' }}>最近7天</option>
+                                    <option value="last_30_days" {{ $dateFilter == 'last_30_days' ? 'selected' : '' }}>最近30天</option>
+                                    <option value="this_month" {{ $dateFilter == 'this_month' ? 'selected' : '' }}>本月</option>
+                                    <option value="last_month" {{ $dateFilter == 'last_month' ? 'selected' : '' }}>上月</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 过滤器 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
+                                <select id="filterField" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="">无过滤</option>
+                                    <option value="current_ranking" {{ $filterField == 'current_ranking' ? 'selected' : '' }}>排名 ≥</option>
+                                    <option value="daily_change" {{ $filterField == 'daily_change' ? 'selected' : '' }}>日变化 ≥</option>
+                                    <option value="week_change" {{ $filterField == 'week_change' ? 'selected' : '' }}>周变化 ≥</option>
+                                    <option value="biweek_change" {{ $filterField == 'biweek_change' ? 'selected' : '' }}>双周变化 ≥</option>
+                                    <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
+                                    <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
+                                    <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
+                                    <option value="year_change" {{ $filterField == 'year_change' ? 'selected' : '' }}>年变化 ≥</option>
+                                </select>
+                                <input type="number" 
+                                       id="filterValue"
+                                       placeholder="数值"
+                                       value="{{ $filterValue }}"
+                                       class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                <button id="applyFilter" 
+                                        class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
+                                    应用
+                                </button>
+                                @if($filterField)
+                                <button id="clearFilter" 
+                                        class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
+                                    清除
+                                </button>
+                                @endif
+                            </div>
+
+                            <!-- 排序控制 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
+                                <select id="sortSelect" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="record_date-desc" {{ $sortBy == 'record_date' && $sortOrder == 'desc' ? 'selected' : '' }}>日期 ↓</option>
+                                    <option value="record_date-asc" {{ $sortBy == 'record_date' && $sortOrder == 'asc' ? 'selected' : '' }}>日期 ↑</option>
+                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 ↑</option>
+                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 ↓</option>
+                                    <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 ↑</option>
+                                    <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 ↓</option>
+                                    <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日变化 ↓</option>
+                                    <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日变化 ↑</option>
+                                    <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周变化 ↓</option>
+                                    <option value="week_change-asc" {{ $sortBy == 'week_change' && $sortOrder == 'asc' ? 'selected' : '' }}>周变化 ↑</option>
+                                    <option value="month_change-desc" {{ $sortBy == 'month_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月变化 ↓</option>
+                                    <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月变化 ↑</option>
+                                </select>
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
             <!-- 数据表格 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">域名</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">记录日期</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">当前排名</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">日变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">周变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">双周变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">三周变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">月变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">季度变化</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">年变化</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($rankingChanges as $change)
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        域名
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        记录日期
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        当前排名
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        日变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        周变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        双周变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        三周变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        月变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        季度变化
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        年变化
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @forelse($rankingChanges as $change)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ $change->domain }}
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <img src="https://www.google.com/s2/favicons?domain={{ $change->domain }}" 
+                                                 alt="{{ $change->domain }}" 
+                                                 class="w-4 h-4 mr-3 rounded-sm"
+                                                 onerror="this.style.display='none'">
+                                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                                {{ $change->domain }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                         {{ $change->record_date->format('Y-m-d') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                         {{ number_format($change->current_ranking) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -287,38 +355,119 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- 分页链接 -->
-                @if($rankingChanges->hasPages())
-                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-                        {{ $rankingChanges->links() }}
-                    </div>
-                @endif
             </div>
+        </div>
 
-            <!-- 页面底部信息 -->
-            <div class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                显示 {{ $rankingChanges->firstItem() ?? 0 }} - {{ $rankingChanges->lastItem() ?? 0 }} 
-                共 {{ $rankingChanges->total() }} 条记录 
-                (第 {{ $rankingChanges->currentPage() }} 页，共 {{ $rankingChanges->lastPage() }} 页)
+        <!-- 分页导航 -->
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="p-6">
+                {{ $rankingChanges->appends(request()->query())->links() }}
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // 自动提交表单当选择改变时（可选功能）
-        document.addEventListener('DOMContentLoaded', function() {
-            const autoSubmitFields = ['date_filter'];
-            
-            autoSubmitFields.forEach(fieldName => {
-                const field = document.getElementById(fieldName);
-                if (field) {
-                    field.addEventListener('change', function() {
-                        // 可以选择是否自动提交，这里注释掉了
-                        // this.form.submit();
-                    });
-                }
-            });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 页码跳转功能
+    const pageJumpInput = document.getElementById('pageJumpInput');
+    const pageJumpBtn = document.getElementById('pageJumpBtn');
+    
+    function jumpToPage() {
+        const page = parseInt(pageJumpInput.value);
+        const maxPage = parseInt(pageJumpInput.getAttribute('max'));
+        
+        if (page && page >= 1 && page <= maxPage) {
+            const url = new URL(window.location);
+            url.searchParams.set('page', page);
+            window.location.href = url.toString();
+        } else {
+            alert('请输入有效的页码（1 - ' + maxPage + '）');
+            pageJumpInput.value = {{ $rankingChanges->currentPage() }};
+        }
+    }
+    
+    pageJumpBtn.addEventListener('click', jumpToPage);
+    
+    // 回车键跳转
+    pageJumpInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            jumpToPage();
+        }
+    });
+
+    // 日期筛选变化时重新加载页面
+    document.getElementById('dateFilter').addEventListener('change', function() {
+        const url = new URL(window.location);
+        if (this.value) {
+            url.searchParams.set('date_filter', this.value);
+        } else {
+            url.searchParams.delete('date_filter');
+        }
+        url.searchParams.delete('page'); // 重置到第一页
+        window.location.href = url.toString();
+    });
+    
+    // 排序选择变化时重新加载页面
+    document.getElementById('sortSelect').addEventListener('change', function() {
+        const [sort, order] = this.value.split('-');
+        const url = new URL(window.location);
+        url.searchParams.set('sort', sort);
+        url.searchParams.set('order', order);
+        url.searchParams.delete('page'); // 重置到第一页
+        window.location.href = url.toString();
+    });
+
+    // 应用过滤器
+    document.getElementById('applyFilter').addEventListener('click', function() {
+        const filterField = document.getElementById('filterField').value;
+        const filterValue = document.getElementById('filterValue').value;
+        
+        const url = new URL(window.location);
+        
+        if (filterField && filterValue !== '') {
+            url.searchParams.set('filter_field', filterField);
+            url.searchParams.set('filter_value', filterValue);
+        } else {
+            url.searchParams.delete('filter_field');
+            url.searchParams.delete('filter_value');
+        }
+        
+        url.searchParams.delete('page'); // 重置到第一页
+        window.location.href = url.toString();
+    });
+
+    // 清除过滤器
+    const clearFilterBtn = document.getElementById('clearFilter');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', function() {
+            const url = new URL(window.location);
+            url.searchParams.delete('filter_field');
+            url.searchParams.delete('filter_value');
+            url.searchParams.delete('page'); // 重置到第一页
+            window.location.href = url.toString();
         });
-    </script>
+    }
+
+    // 回车键应用过滤器
+    document.getElementById('filterValue').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('applyFilter').click();
+        }
+    });
+
+    // 过滤字段变化时更新占位符
+    document.getElementById('filterField').addEventListener('change', function() {
+        const filterValue = document.getElementById('filterValue');
+        
+        if (this.value === 'current_ranking') {
+            filterValue.placeholder = '排名值 (如: 100000)';
+        } else if (this.value) {
+            filterValue.placeholder = '变化值 (如: 1000)';
+        } else {
+            filterValue.placeholder = '数值';
+        }
+    });
+});
+</script>
 </x-app-layout>
