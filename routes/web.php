@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\RankingChangeController;
+use App\Http\Controllers\SimilarwebChangeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,6 +47,16 @@ Route::middleware('auth')->group(function () {
         // 获取统计信息API
         Route::get('/stats', [RankingChangeController::class, 'getStats'])->name('stats');
     });
+
+    // Similarweb EMV变化相关路由
+    Route::prefix('similarweb-changes')->name('similarweb-changes.')->group(function () {
+        // EMV变化列表页面
+        Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
+        
+        // 获取统计信息API
+        Route::get('/stats', [SimilarwebChangeController::class, 'getStats'])->name('stats');
+    });
+
 });
 
 require __DIR__.'/auth.php';
