@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                域名排名变化数据
+                今日排名变化数据 - {{ today()->format('Y-m-d') }}
             </h2>
             <div class="text-sm text-gray-600 dark:text-gray-400">
-                总计 {{ number_format($totalCount) }} 条记录
+                今日记录 {{ number_format($todayCount) }} 条
             </div>
         </div>
     </x-slot>
@@ -46,20 +46,6 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center">
-                                <div class="p-2 bg-purple-500 bg-opacity-10 rounded-full mr-3">
-                                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">今日记录</p>
-                                    <p class="text-lg font-bold text-purple-600">
-                                        {{ number_format($todayCount) }} 条
-                                    </p>
-                                </div>
-                            </div>
-
                             @if($filterField && $filterValue !== null && $filterValue !== '')
                             <div class="flex items-center">
                                 <div class="p-2 bg-orange-500 bg-opacity-10 rounded-full mr-3">
@@ -75,6 +61,23 @@
                                 </div>
                             </div>
                             @endif
+
+                            <div class="flex items-center">
+                                <div class="p-2 bg-purple-500 bg-opacity-10 rounded-full mr-3">
+                                    <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400">趋势筛选</p>
+                                    <p class="text-lg font-bold text-purple-600">
+                                        @if($trendFilter === 'up') 上升趋势
+                                        @elseif($trendFilter === 'down') 下降趋势
+                                        @else 全部趋势
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- 控制面板 -->
@@ -95,22 +98,18 @@
                                 </button>
                             </div>
 
-                            <!-- 日期过滤器 -->
+                            <!-- 趋势筛选 -->
                             <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">日期：</label>
-                                <select id="dateFilter" 
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">趋势：</label>
+                                <select id="trendFilter" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="">全部日期</option>
-                                    <option value="today" {{ $dateFilter == 'today' ? 'selected' : '' }}>今天</option>
-                                    <option value="yesterday" {{ $dateFilter == 'yesterday' ? 'selected' : '' }}>昨天</option>
-                                    <option value="last_7_days" {{ $dateFilter == 'last_7_days' ? 'selected' : '' }}>最近7天</option>
-                                    <option value="last_30_days" {{ $dateFilter == 'last_30_days' ? 'selected' : '' }}>最近30天</option>
-                                    <option value="this_month" {{ $dateFilter == 'this_month' ? 'selected' : '' }}>本月</option>
-                                    <option value="last_month" {{ $dateFilter == 'last_month' ? 'selected' : '' }}>上月</option>
+                                    <option value="up" {{ $trendFilter == 'up' ? 'selected' : '' }}>仅上升</option>
+                                    <option value="down" {{ $trendFilter == 'down' ? 'selected' : '' }}>仅下降</option>
+                                    <option value="all" {{ $trendFilter == 'all' ? 'selected' : '' }}>全部</option>
                                 </select>
                             </div>
                             
-                            <!-- 过滤器 -->
+                            <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
                                 <select id="filterField" 
@@ -147,18 +146,97 @@
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="record_date-desc" {{ $sortBy == 'record_date' && $sortOrder == 'desc' ? 'selected' : '' }}>日期 ↓</option>
-                                    <option value="record_date-asc" {{ $sortBy == 'record_date' && $sortOrder == 'asc' ? 'selected' : '' }}>日期 ↑</option>
-                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 ↑</option>
-                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 ↓</option>
                                     <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 ↑</option>
                                     <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 ↓</option>
+                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 ↑</option>
+                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 ↓</option>
                                     <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日变化 ↓</option>
                                     <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日变化 ↑</option>
                                     <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周变化 ↓</option>
                                     <option value="week_change-asc" {{ $sortBy == 'week_change' && $sortOrder == 'asc' ? 'selected' : '' }}>周变化 ↑</option>
+                                    <option value="biweek_change-desc" {{ $sortBy == 'biweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>双周变化 ↓</option>
+                                    <option value="biweek_change-asc" {{ $sortBy == 'biweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>双周变化 ↑</option>
+                                    <option value="triweek_change-desc" {{ $sortBy == 'triweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>三周变化 ↓</option>
+                                    <option value="triweek_change-asc" {{ $sortBy == 'triweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>三周变化 ↑</option>
                                     <option value="month_change-desc" {{ $sortBy == 'month_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月变化 ↓</option>
                                     <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月变化 ↑</option>
+                                    <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度变化 ↓</option>
+                                    <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度变化 ↑</option>
+                                    <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年变化 ↓</option>
+                                    <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年变化 ↑</option>
+                                </select>
+                            </div>
+                        </div>                                700 transition-colors duration-200 text-sm">
+                                    GO
+                                </button>
+                            </div>
+
+                            <!-- 趋势筛选 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">趋势：</label>
+                                <select id="trendFilter" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="up" {{ $trendFilter == 'up' ? 'selected' : '' }}>仅上升</option>
+                                    <option value="down" {{ $trendFilter == 'down' ? 'selected' : '' }}>仅下降</option>
+                                    <option value="all" {{ $trendFilter == 'all' ? 'selected' : '' }}>全部</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 数值过滤器 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
+                                <select id="filterField" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="">无过滤</option>
+                                    <option value="current_ranking" {{ $filterField == 'current_ranking' ? 'selected' : '' }}>排名 ≥</option>
+                                    <option value="daily_change" {{ $filterField == 'daily_change' ? 'selected' : '' }}>日变化 ≥</option>
+                                    <option value="week_change" {{ $filterField == 'week_change' ? 'selected' : '' }}>周变化 ≥</option>
+                                    <option value="biweek_change" {{ $filterField == 'biweek_change' ? 'selected' : '' }}>双周变化 ≥</option>
+                                    <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
+                                    <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
+                                    <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
+                                    <option value="year_change" {{ $filterField == 'year_change' ? 'selected' : '' }}>年变化 ≥</option>
+                                </select>
+                                <input type="number" 
+                                       id="filterValue"
+                                       placeholder="数值"
+                                       value="{{ $filterValue }}"
+                                       class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                <button id="applyFilter" 
+                                        class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
+                                    应用
+                                </button>
+                                @if($filterField)
+                                <button id="clearFilter" 
+                                        class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
+                                    清除
+                                </button>
+                                @endif
+                            </div>
+
+                            <!-- 排序控制 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
+                                <select id="sortSelect" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 ↑</option>
+                                    <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 ↓</option>
+                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 ↑</option>
+                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 ↓</option>
+                                    <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日变化 ↓</option>
+                                    <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日变化 ↑</option>
+                                    <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周变化 ↓</option>
+                                    <option value="week_change-asc" {{ $sortBy == 'week_change' && $sortOrder == 'asc' ? 'selected' : '' }}>周变化 ↑</option>
+                                    <option value="biweek_change-desc" {{ $sortBy == 'biweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>双周变化 ↓</option>
+                                    <option value="biweek_change-asc" {{ $sortBy == 'biweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>双周变化 ↑</option>
+                                    <option value="triweek_change-desc" {{ $sortBy == 'triweek_change' && $sortOrder == 'desc' ? 'selected' : '' }}>三周变化 ↓</option>
+                                    <option value="triweek_change-asc" {{ $sortBy == 'triweek_change' && $sortOrder == 'asc' ? 'selected' : '' }}>三周变化 ↑</option>
+                                    <option value="month_change-desc" {{ $sortBy == 'month_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月变化 ↓</option>
+                                    <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月变化 ↑</option>
+                                    <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度变化 ↓</option>
+                                    <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度变化 ↑</option>
+                                    <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年变化 ↓</option>
+                                    <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年变化 ↑</option>
                                 </select>
                             </div>
                         </div>
