@@ -23,7 +23,6 @@ class SimilarwebChangeController extends Controller
             $sortOrder = $request->get('order', 'desc');
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $trendFilter = $request->get('trend_filter');
             $recordMonth = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
             
             // 验证排序字段
@@ -60,41 +59,6 @@ class SimilarwebChangeController extends Controller
                     'year_emv_change',
                     'year_emv_trend'
                 ]);
-
-            // 应用趋势过滤
-            if ($trendFilter && $trendFilter !== 'all') {
-                $trendFields = [
-                    'month' => 'month_emv_trend',
-                    'quarter' => 'quarter_emv_trend',
-                    'halfyear' => 'halfyear_emv_trend',
-                    'year' => 'year_emv_trend'
-                ];
-                
-                // 解析过滤器格式
-                $parts = explode('_', $trendFilter);
-                if (count($parts) == 2) {
-                    $period = $parts[0];
-                    $trend = $parts[1];
-                    
-                    if (isset($trendFields[$period]) && in_array($trend, ['up', 'down', 'stable'])) {
-                        $query->where($trendFields[$period], $trend);
-                    }
-                } elseif ($trendFilter === 'any_up') {
-                    // 任意时间段上升
-                    $query->where(function($q) use ($trendFields) {
-                        foreach ($trendFields as $field) {
-                            $q->orWhere($field, 'up');
-                        }
-                    });
-                } elseif ($trendFilter === 'all_up') {
-                    // 所有时间段都上升
-                    $query->where(function($q) use ($trendFields) {
-                        foreach ($trendFields as $field) {
-                            $q->where($field, 'up');
-                        }
-                    });
-                }
-            }
 
             // 应用数值筛选
             if ($filterField && $filterValue !== null && $filterValue !== '') {
@@ -179,7 +143,6 @@ class SimilarwebChangeController extends Controller
                 'sortOrder',
                 'filterField',
                 'filterValue',
-                'trendFilter',
                 'recordMonth',
                 'monthCount',
                 'filteredCount',
