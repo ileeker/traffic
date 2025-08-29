@@ -131,38 +131,40 @@ class RankingChangeController extends Controller
                 }
             }
 
-            // 应用排序 - 上升优先（正数优先）
+            // 应用排序 - 上升优先（负数表示上升）
             if ($sortBy === 'domain' || $sortBy === 'current_ranking') {
                 $query->orderBy($sortBy, $sortOrder);
             } else {
-                // 对于变化字段，先按上升（正数）排序，再按下降（负数）排序
+                // 对于变化字段：负数=上升，正数=下降
                 if ($sortOrder === 'desc') {
-                    // 降序：大的正数优先，然后是小的正数，然后是小的负数，最后是大的负数
+                    // 降序：上升最多的优先（最大的负数优先）
+                    // 例如：-100（上升100名）排在 -50（上升50名）前面
                     $query->orderByRaw("
                         CASE 
                             WHEN $sortBy IS NULL THEN 3
-                            WHEN $sortBy > 0 THEN 1
+                            WHEN $sortBy < 0 THEN 1  -- 负数（上升）优先
                             WHEN $sortBy = 0 THEN 2
-                            ELSE 2
+                            ELSE 2  -- 正数（下降）最后
                         END,
                         CASE 
-                            WHEN $sortBy > 0 THEN -$sortBy
-                            ELSE $sortBy
+                            WHEN $sortBy < 0 THEN $sortBy  -- 负数按原值升序（-100在-10前面）
+                            ELSE -$sortBy  -- 正数变负后升序
                         END ASC
                     ");
                 } else {
-                    // 升序：小的正数优先，然后是大的正数，然后是大的负数，最后是小的负数
+                    // 升序：下降最多的优先（最大的正数优先）
+                    // 例如：100（下降100名）排在 50（下降50名）前面
                     $query->orderByRaw("
                         CASE 
                             WHEN $sortBy IS NULL THEN 3
-                            WHEN $sortBy > 0 THEN 1
+                            WHEN $sortBy > 0 THEN 1  -- 正数（下降）优先
                             WHEN $sortBy = 0 THEN 2
-                            ELSE 2
+                            ELSE 2  -- 负数（上升）最后
                         END,
                         CASE 
-                            WHEN $sortBy > 0 THEN $sortBy
-                            ELSE -$sortBy
-                        END DESC
+                            WHEN $sortBy > 0 THEN -$sortBy  -- 正数变负后升序
+                            ELSE $sortBy  -- 负数按原值降序
+                        END ASC
                     ");
                 }
             }
