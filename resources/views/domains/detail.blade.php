@@ -137,15 +137,18 @@
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <a href="https://{{ $result['domain'] }}" target="_blank" title="访问 {{ $result['domain'] }}">
                                             <img src="https://www.google.com/s2/favicons?domain={{ $result['domain'] }}" 
                                                  alt="{{ $result['domain'] }}" 
                                                  class="w-4 h-4 mr-3 rounded-sm"
                                                  onerror="this.style.display='none'">
-                                            </a>
                                             <a href="{{ route('domain.ranking', $result['domain']) }}" 
                                                class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                                                 {{ $result['domain'] }}
+                                            </a>
+                                            <a href="https://{{ $result['domain'] }}" target="_blank" title="访问 {{ $result['domain'] }}">
+                                                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
                                             </a>
                                         </div>
                                     </td>
