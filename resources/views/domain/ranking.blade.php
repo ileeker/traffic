@@ -1,8 +1,29 @@
 <x-app-layout>
+    @php
+    // 格式化数字为 k/m/b
+    function formatNumber($num) {
+        if ($num >= 1000000000) {
+            return number_format($num / 1000000000, 2) . 'B';
+        } elseif ($num >= 1000000) {
+            return number_format($num / 1000000, 2) . 'M';
+        } elseif ($num >= 1000) {
+            return number_format($num / 1000, 2) . 'K';
+        }
+        return number_format($num, 2);
+    }
+    @endphp
+    
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                域名综合分析 - {{ $domainRecord ? $domainRecord->domain : ($similarwebRecord ? $similarwebRecord->domain : '') }}
+                域名综合分析 - 
+                @if($domainRecord || $similarwebRecord)
+                    <a href="https://{{ $domainRecord ? $domainRecord->domain : $similarwebRecord->domain }}" 
+                       target="_blank"
+                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
+                        {{ $domainRecord ? $domainRecord->domain : $similarwebRecord->domain }}
+                    </a>
+                @endif
             </h2>
             <div class="text-sm text-gray-600 dark:text-gray-400">
                 @if($domainRecord)
@@ -192,7 +213,7 @@
                                     <div>
                                         <p class="text-xs font-medium text-gray-600 dark:text-gray-400">月访问量</p>
                                         <p class="text-lg font-bold text-gray-900 dark:text-white">
-                                            {{ number_format($similarwebRecord->current_emv) }}
+                                            {{ formatNumber($similarwebRecord->current_emv) }}
                                         </p>
                                     </div>
                                 </div>
@@ -371,7 +392,7 @@
                                             'GB' => '🇬🇧',
                                             'JP' => '🇯🇵'
                                         ];
-                                        $flag = $flagEmojis[$country['CountryCode']] ?? '🌐';
+                                        $flag = $flagEmojis[$country['CountryCode']] ?? '🌍';
                                         
                                         // 为不同国家设置不同颜色
                                         $colors = ['blue', 'green', 'purple', 'pink', 'orange'];
@@ -665,7 +686,18 @@
                                             return '月份: ' + trafficData[context[0].dataIndex].month;
                                         },
                                         label: function(context) {
-                                            return '访问量: ' + context.parsed.y.toLocaleString();
+                                            const value = context.parsed.y;
+                                            let formatted;
+                                            if (value >= 1000000000) {
+                                                formatted = (value / 1000000000).toFixed(2) + 'B';
+                                            } else if (value >= 1000000) {
+                                                formatted = (value / 1000000).toFixed(2) + 'M';
+                                            } else if (value >= 1000) {
+                                                formatted = (value / 1000).toFixed(2) + 'K';
+                                            } else {
+                                                formatted = value.toFixed(2);
+                                            }
+                                            return '访问量: ' + formatted;
                                         }
                                     }
                                 }
@@ -681,7 +713,14 @@
                                         color: textColor,
                                         font: { size: 12 },
                                         callback: function(value) {
-                                            return value.toLocaleString();
+                                            if (value >= 1000000000) {
+                                                return (value / 1000000000).toFixed(1) + 'B';
+                                            } else if (value >= 1000000) {
+                                                return (value / 1000000).toFixed(1) + 'M';
+                                            } else if (value >= 1000) {
+                                                return (value / 1000).toFixed(1) + 'K';
+                                            }
+                                            return value;
                                         }
                                     }
                                 }
