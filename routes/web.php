@@ -37,6 +37,14 @@ Route::middleware('auth')->group(function () {
     // 域名数据浏览路由
     Route::get('/domains/browse', [DomainController::class, 'browseDomains'])->name('domains.browse');
 
+    // 排名变化相关路由
+    Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
+        // 排名变化列表页面
+        Route::get('/', [RankingChangeController::class, 'index'])->name('index');
+        
+        // 获取统计信息API
+        Route::get('/stats', [RankingChangeController::class, 'getStats'])->name('stats');
+    });
 });
 
 require __DIR__.'/auth.php';
