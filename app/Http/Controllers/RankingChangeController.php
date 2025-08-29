@@ -22,6 +22,7 @@ class RankingChangeController extends Controller
             $sortOrder = $request->get('order', 'asc');
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
+            $trendFilter = $request->get('trend_filter'); // 新增趋势过滤
             
             // 验证排序字段
             $allowedSorts = [
@@ -66,6 +67,44 @@ class RankingChangeController extends Controller
                     'year_change',
                     'year_trend'
                 ]);
+
+            // 应用趋势过滤（只选择上升的）
+            if ($trendFilter && $trendFilter !== 'all') {
+                $trendFields = [
+                    'daily' => 'daily_trend',
+                    'week' => 'week_trend',
+                    'biweek' => 'biweek_trend',
+                    'triweek' => 'triweek_trend',
+                    'month' => 'month_trend',
+                    'quarter' => 'quarter_trend',
+                    'year' => 'year_trend'
+                ];
+                
+                // 解析过滤器格式: period_trend (e.g., daily_up, week_down)
+                $parts = explode('_', $trendFilter);
+                if (count($parts) == 2) {
+                    $period = $parts[0];
+                    $trend = $parts[1];
+                    
+                    if (isset($trendFields[$period]) && in_array($trend, ['up', 'down', 'stable'])) {
+                        $query->where($trendFields[$period], $trend);
+                    }
+                } elseif ($trendFilter === 'any_up') {
+                    // 任意时间段上升
+                    $query->where(function($q) use ($trendFields) {
+                        foreach ($trendFields as $field) {
+                            $q->orWhere($field, 'up');
+                        }
+                    });
+                } elseif ($trendFilter === 'all_up') {
+                    // 所有时间段都上升
+                    $query->where(function($q) use ($trendFields) {
+                        foreach ($trendFields as $field) {
+                            $q->where($field, 'up');
+                        }
+                    });
+                }
+            }
 
             // 应用数值筛选
             if ($filterField && $filterValue !== null && $filterValue !== '') {
@@ -144,6 +183,7 @@ class RankingChangeController extends Controller
                 'sortOrder',
                 'filterField',
                 'filterValue',
+                'trendFilter',
                 'todayCount',
                 'filteredCount'
             ));

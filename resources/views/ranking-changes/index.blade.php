@@ -67,6 +67,24 @@
                                 </button>
                             </div>
                             
+                            <!-- 趋势过滤器 -->
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">趋势：</label>
+                                <select id="trendFilter" 
+                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                    <option value="all" {{ $trendFilter == 'all' ? 'selected' : '' }}>全部</option>
+                                    <option value="any_up" {{ $trendFilter == 'any_up' ? 'selected' : '' }}>任意上升</option>
+                                    <option value="all_up" {{ $trendFilter == 'all_up' ? 'selected' : '' }}>全部上升</option>
+                                    <option value="daily_up" {{ $trendFilter == 'daily_up' ? 'selected' : '' }}>日上升</option>
+                                    <option value="week_up" {{ $trendFilter == 'week_up' ? 'selected' : '' }}>周上升</option>
+                                    <option value="biweek_up" {{ $trendFilter == 'biweek_up' ? 'selected' : '' }}>双周上升</option>
+                                    <option value="triweek_up" {{ $trendFilter == 'triweek_up' ? 'selected' : '' }}>三周上升</option>
+                                    <option value="month_up" {{ $trendFilter == 'month_up' ? 'selected' : '' }}>月上升</option>
+                                    <option value="quarter_up" {{ $trendFilter == 'quarter_up' ? 'selected' : '' }}>季度上升</option>
+                                    <option value="year_up" {{ $trendFilter == 'year_up' ? 'selected' : '' }}>年上升</option>
+                                </select>
+                            </div>
+                            
                             <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
@@ -91,7 +109,7 @@
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                                     应用
                                 </button>
-                                @if($filterField)
+                                @if($filterField || $trendFilter)
                                 <button id="clearFilter" 
                                         class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
                                     清除
@@ -174,9 +192,10 @@
                                                  alt="{{ $change->domain }}" 
                                                  class="w-4 h-4 mr-3 rounded-sm"
                                                  onerror="this.style.display='none'">
-                                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                            <a href="{{ route('domain.ranking', ['domain' => $change->domain]) }}" 
+                                               class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                                                 {{ $change->domain }}
-                                            </span>
+                                            </a>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -353,6 +372,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // 趋势过滤器
+    document.getElementById('trendFilter').addEventListener('change', function() {
+        const url = new URL(window.location);
+        if (this.value === 'all') {
+            url.searchParams.delete('trend_filter');
+        } else {
+            url.searchParams.set('trend_filter', this.value);
+        }
+        url.searchParams.delete('page'); // 重置到第一页
+        window.location.href = url.toString();
+    });
+    
     // 排序选择变化时重新加载页面
     document.getElementById('sortSelect').addEventListener('change', function() {
         const [sort, order] = this.value.split('-');
@@ -389,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = new URL(window.location);
             url.searchParams.delete('filter_field');
             url.searchParams.delete('filter_value');
+            url.searchParams.delete('trend_filter');
             url.searchParams.delete('page'); // 重置到第一页
             window.location.href = url.toString();
         });
