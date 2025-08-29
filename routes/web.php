@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DomainController;
+use App\Http\Controllers\RankingChangeController;
 use Illuminate\Support\Facades\Route;
 
 /*
