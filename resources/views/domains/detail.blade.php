@@ -1,4 +1,18 @@
 <x-app-layout>
+    @php
+    // 格式化数字为 k/m/b
+    function formatNumber($num) {
+        if ($num >= 1000000000) {
+            return number_format($num / 1000000000, 2) . 'B';
+        } elseif ($num >= 1000000) {
+            return number_format($num / 1000000, 2) . 'M';
+        } elseif ($num >= 1000) {
+            return number_format($num / 1000, 2) . 'K';
+        }
+        return number_format($num, 2);
+    }
+    @endphp
+    
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -137,7 +151,7 @@
                                         {{ $result['current_month'] }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ number_format($result['current_emv']) }}
+                                        {{ formatNumber($result['current_emv']) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         #{{ number_format($result['global_rank']) }}
