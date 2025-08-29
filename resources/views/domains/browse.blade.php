@@ -182,7 +182,7 @@
                                             </a>
                                             <a href="https://{{ $domain->domain }}" target="_blank" title="访问 {{ $domain->domain }}">
                                                 <!-- 纯文本符号 -->
-                                                <span class="text-green-500 text-sm"> ↗</span>
+                                                <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
                                             </a>
                                         </div>
                                     </td>
