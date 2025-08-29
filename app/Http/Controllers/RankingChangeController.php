@@ -18,11 +18,11 @@ class RankingChangeController extends Controller
     {
         try {
             // 获取查询参数
-            $sortBy = $request->get('sort', 'record_date');
-            $sortOrder = $request->get('order', 'desc');
+            $sortBy = $request->get('sort', 'current_ranking');
+            $sortOrder = $request->get('order', 'asc');
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $dateFilter = $request->get('date_filter');
+            $trendFilter = $request->get('trend_filter', 'up'); // 默认只看上升的
             
             // 验证排序字段
             $allowedSorts = [
@@ -39,67 +39,60 @@ class RankingChangeController extends Controller
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
-                $sortBy = 'record_date';
+                $sortBy = 'current_ranking';
             }
             
             // 验证排序顺序
             if (!in_array($sortOrder, ['asc', 'desc'])) {
-                $sortOrder = 'desc';
+                $sortOrder = 'asc';
             }
-            
-            // 验证筛选操作符 - 移除，简化为只使用 ">="
-            // $allowedOperators = ['>', '<', '>=', '<=', '=', '!='];
-            // if (!in_array($filterOperator, $allowedOperators)) {
-            //     $filterOperator = '>=';
-            // }
 
-            // 构建查询
-            $query = RankingChange::select([
-                'id',
-                'domain',
-                'record_date',
-                'current_ranking',
-                'daily_change',
-                'daily_trend',
-                'week_change',
-                'week_trend',
-                'biweek_change',
-                'biweek_trend',
-                'triweek_change',
-                'triweek_trend',
-                'month_change',
-                'month_trend',
-                'quarter_change',
-                'quarter_trend',
-                'year_change',
-                'year_trend'
-            ]);
+            // 构建查询 - 只查询今天的数据
+            $query = RankingChange::whereDate('record_date', today())
+                ->select([
+                    'id',
+                    'domain',
+                    'record_date',
+                    'current_ranking',
+                    'daily_change',
+                    'daily_trend',
+                    'week_change',
+                    'week_trend',
+                    'biweek_change',
+                    'biweek_trend',
+                    'triweek_change',
+                    'triweek_trend',
+                    'month_change',
+                    'month_trend',
+                    'quarter_change',
+                    'quarter_trend',
+                    'year_change',
+                    'year_trend'
+                ]);
 
-            // 应用日期筛选
-            if ($dateFilter) {
-                switch ($dateFilter) {
-                    case 'today':
-                        $query->whereDate('record_date', today());
-                        break;
-                    case 'yesterday':
-                        $query->whereDate('record_date', today()->subDay());
-                        break;
-                    case 'last_7_days':
-                        $query->where('record_date', '>=', today()->subDays(7));
-                        break;
-                    case 'last_30_days':
-                        $query->where('record_date', '>=', today()->subDays(30));
-                        break;
-                    case 'this_month':
-                        $query->whereMonth('record_date', now()->month)
-                              ->whereYear('record_date', now()->year);
-                        break;
-                    case 'last_month':
-                        $lastMonth = now()->subMonth();
-                        $query->whereMonth('record_date', $lastMonth->month)
-                              ->whereYear('record_date', $lastMonth->year);
-                        break;
-                }
+            // 应用趋势筛选 - 默认只看上升的排名
+            if ($trendFilter && $trendFilter !== 'all') {
+                $query->where(function($q) use ($trendFilter) {
+                    if ($trendFilter === 'up') {
+                        // 只看排名上升的（任意时间段有上升趋势）
+                        $q->where('daily_trend', 'up')
+                          ->orWhere('week_trend', 'up')
+                          ->orWhere('biweek_trend', 'up')
+                          ->orWhere('triweek_trend', 'up')
+                          ->orWhere('month_trend', 'up')
+                          ->orWhere('quarter_trend', 'up')
+                          ->orWhere('year_trend', 'up');
+                    } elseif ($trendFilter === 'down') {
+                        // 只看排名下降的
+                        $q->where('daily_trend', 'down')
+                          ->orWhere('week_trend', 'down')
+                          ->orWhere('biweek_trend', 'down')
+                          ->orWhere('triweek_trend', 'down')
+                          ->orWhere('month_trend', 'down')
+                          ->orWhere('quarter_trend', 'down')
+                          ->orWhere('year_trend', 'down');
+                    }
+                });
             }
 
             // 应用数值筛选
@@ -154,7 +147,7 @@ class RankingChangeController extends Controller
                 'sortOrder',
                 'filterField',
                 'filterValue',
-                'dateFilter',
+                'trendFilter',
                 'totalCount',
                 'todayCount',
                 'filteredCount',
