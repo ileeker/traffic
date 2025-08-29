@@ -1,4 +1,18 @@
 <x-app-layout>
+    @php
+    // 格式化数字为 k/m/b
+    function formatNumber($num) {
+        if ($num >= 1000000000) {
+            return number_format($num / 1000000000, 2) . 'B';
+        } elseif ($num >= 1000000) {
+            return number_format($num / 1000000, 2) . 'M';
+        } elseif ($num >= 1000) {
+            return number_format($num / 1000, 2) . 'K';
+        }
+        return number_format($num, 2);
+    }
+    @endphp
+    
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -59,7 +73,7 @@
                             </div>
 
                             <!-- 过滤后记录数 -->
-                            @if($filterField || $trendFilter)
+                            @if($filterField)
                             <div class="flex items-center">
                                 <div class="p-2 bg-yellow-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,25 +108,6 @@
                                 </button>
                             </div>
                             
-                            <!-- 趋势过滤器 -->
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">趋势：</label>
-                                <select id="trendFilter" 
-                                        class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="all" {{ $trendFilter == 'all' ? 'selected' : '' }}>全部</option>
-                                    <option value="any_up" {{ $trendFilter == 'any_up' ? 'selected' : '' }}>任意增长</option>
-                                    <option value="all_up" {{ $trendFilter == 'all_up' ? 'selected' : '' }}>全部增长</option>
-                                    <option value="month_up" {{ $trendFilter == 'month_up' ? 'selected' : '' }}>月度增长</option>
-                                    <option value="quarter_up" {{ $trendFilter == 'quarter_up' ? 'selected' : '' }}>季度增长</option>
-                                    <option value="halfyear_up" {{ $trendFilter == 'halfyear_up' ? 'selected' : '' }}>半年增长</option>
-                                    <option value="year_up" {{ $trendFilter == 'year_up' ? 'selected' : '' }}>年度增长</option>
-                                    <option value="month_down" {{ $trendFilter == 'month_down' ? 'selected' : '' }}>月度下降</option>
-                                    <option value="quarter_down" {{ $trendFilter == 'quarter_down' ? 'selected' : '' }}>季度下降</option>
-                                    <option value="halfyear_down" {{ $trendFilter == 'halfyear_down' ? 'selected' : '' }}>半年下降</option>
-                                    <option value="year_down" {{ $trendFilter == 'year_down' ? 'selected' : '' }}>年度下降</option>
-                                </select>
-                            </div>
-                            
                             <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
@@ -134,7 +129,7 @@
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                                     应用
                                 </button>
-                                @if($filterField || $trendFilter)
+                                @if($filterField)
                                 <button id="clearFilter" 
                                         class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
                                     清除
@@ -210,7 +205,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-semibold text-gray-900 dark:text-white">
-                                            ${{ number_format($change->current_emv) }}
+                                            {{ formatNumber($change->current_emv) }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -222,19 +217,13 @@
                                                     @else bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100
                                                     @endif">
                                                     @if($change->month_emv_trend === 'up') 
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↑
                                                     @elseif($change->month_emv_trend === 'down')
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↓
                                                     @else
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        →
                                                     @endif
-                                                    ${{ number_format(abs($change->month_emv_change)) }}
+                                                    {{ formatNumber(abs($change->month_emv_change)) }}
                                                 </span>
                                             </div>
                                         @else
@@ -250,19 +239,13 @@
                                                     @else bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100
                                                     @endif">
                                                     @if($change->quarter_emv_trend === 'up') 
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↑
                                                     @elseif($change->quarter_emv_trend === 'down')
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↓
                                                     @else
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        →
                                                     @endif
-                                                    ${{ number_format(abs($change->quarter_emv_change)) }}
+                                                    {{ formatNumber(abs($change->quarter_emv_change)) }}
                                                 </span>
                                             </div>
                                         @else
@@ -278,19 +261,13 @@
                                                     @else bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100
                                                     @endif">
                                                     @if($change->halfyear_emv_trend === 'up') 
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↑
                                                     @elseif($change->halfyear_emv_trend === 'down')
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↓
                                                     @else
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        →
                                                     @endif
-                                                    ${{ number_format(abs($change->halfyear_emv_change)) }}
+                                                    {{ formatNumber(abs($change->halfyear_emv_change)) }}
                                                 </span>
                                             </div>
                                         @else
@@ -306,19 +283,13 @@
                                                     @else bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100
                                                     @endif">
                                                     @if($change->year_emv_trend === 'up') 
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↑
                                                     @elseif($change->year_emv_trend === 'down')
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        ↓
                                                     @else
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                                        </svg>
+                                                        →
                                                     @endif
-                                                    ${{ number_format(abs($change->year_emv_change)) }}
+                                                    {{ formatNumber(abs($change->year_emv_change)) }}
                                                 </span>
                                             </div>
                                         @else
@@ -385,18 +356,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 趋势过滤器
-    document.getElementById('trendFilter').addEventListener('change', function() {
-        const url = new URL(window.location);
-        if (this.value === 'all') {
-            url.searchParams.delete('trend_filter');
-        } else {
-            url.searchParams.set('trend_filter', this.value);
-        }
-        url.searchParams.delete('page'); // 重置到第一页
-        window.location.href = url.toString();
-    });
-    
     // 排序选择变化时重新加载页面
     document.getElementById('sortSelect').addEventListener('change', function() {
         const [sort, order] = this.value.split('-');
@@ -433,7 +392,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = new URL(window.location);
             url.searchParams.delete('filter_field');
             url.searchParams.delete('filter_value');
-            url.searchParams.delete('trend_filter');
             url.searchParams.delete('page'); // 重置到第一页
             window.location.href = url.toString();
         });
