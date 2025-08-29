@@ -174,6 +174,7 @@
                                             <img src="https://www.google.com/s2/favicons?domain={{ $domain->domain }}" 
                                                  alt="{{ $domain->domain }}" 
                                                  class="w-4 h-4 mr-3 rounded-sm"
+                                                 style="margin-right:2px"
                                                  onerror="this.style.display='none'">
                                             <a href="{{ route('domain.ranking', $domain->domain) }}" 
                                                class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
