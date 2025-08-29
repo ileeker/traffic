@@ -22,11 +22,9 @@ class RankingChangeController extends Controller
             $sortOrder = $request->get('order', 'asc');
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $trendFilter = $request->get('trend_filter', 'up'); // 默认只看上升的
             
             // 验证排序字段
             $allowedSorts = [
-                'record_date',
                 'domain',
                 'current_ranking',
                 'daily_change',
@@ -52,7 +50,6 @@ class RankingChangeController extends Controller
                 ->select([
                     'id',
                     'domain',
-                    'record_date',
                     'current_ranking',
                     'daily_change',
                     'daily_trend',
@@ -70,31 +67,6 @@ class RankingChangeController extends Controller
                     'year_trend'
                 ]);
 
-            // 应用趋势筛选 - 默认只看上升的排名
-            if ($trendFilter && $trendFilter !== 'all') {
-                $query->where(function($q) use ($trendFilter) {
-                    if ($trendFilter === 'up') {
-                        // 只看排名上升的（任意时间段有上升趋势）
-                        $q->where('daily_trend', 'up')
-                          ->orWhere('week_trend', 'up')
-                          ->orWhere('biweek_trend', 'up')
-                          ->orWhere('triweek_trend', 'up')
-                          ->orWhere('month_trend', 'up')
-                          ->orWhere('quarter_trend', 'up')
-                          ->orWhere('year_trend', 'up');
-                    } elseif ($trendFilter === 'down') {
-                        // 只看排名下降的
-                        $q->where('daily_trend', 'down')
-                          ->orWhere('week_trend', 'down')
-                          ->orWhere('biweek_trend', 'down')
-                          ->orWhere('triweek_trend', 'down')
-                          ->orWhere('month_trend', 'down')
-                          ->orWhere('quarter_trend', 'down')
-                          ->orWhere('year_trend', 'down');
-                    }
-                });
-            }
-
             // 应用数值筛选
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 $filterFields = [
@@ -110,20 +82,49 @@ class RankingChangeController extends Controller
                 
                 if (in_array($filterField, $filterFields)) {
                     $filterValue = (int)$filterValue;
-                    $query->where($filterField, '>=', $filterValue);
+                    
+                    // 对于排名变化字段，使用绝对值过滤
+                    if ($filterField !== 'current_ranking') {
+                        $query->whereRaw("ABS($filterField) >= ?", [$filterValue]);
+                    } else {
+                        $query->where($filterField, '<=', $filterValue);
+                    }
                 }
             }
 
-            // 应用排序
-            if ($sortBy === 'domain') {
+            // 应用排序 - 上升优先（正数优先）
+            if ($sortBy === 'domain' || $sortBy === 'current_ranking') {
                 $query->orderBy($sortBy, $sortOrder);
             } else {
-                // 对于数值字段，NULL值排在最后
-                if (in_array($sortBy, ['daily_change', 'week_change', 'biweek_change', 'triweek_change', 'month_change', 'quarter_change', 'year_change'])) {
-                    $query->orderByRaw("$sortBy IS NULL")
-                          ->orderBy($sortBy, $sortOrder);
+                // 对于变化字段，先按上升（正数）排序，再按下降（负数）排序
+                if ($sortOrder === 'desc') {
+                    // 降序：大的正数优先，然后是小的正数，然后是小的负数，最后是大的负数
+                    $query->orderByRaw("
+                        CASE 
+                            WHEN $sortBy IS NULL THEN 3
+                            WHEN $sortBy > 0 THEN 1
+                            WHEN $sortBy = 0 THEN 2
+                            ELSE 2
+                        END,
+                        CASE 
+                            WHEN $sortBy > 0 THEN -$sortBy
+                            ELSE $sortBy
+                        END ASC
+                    ");
                 } else {
-                    $query->orderBy($sortBy, $sortOrder);
+                    // 升序：小的正数优先，然后是大的正数，然后是大的负数，最后是小的负数
+                    $query->orderByRaw("
+                        CASE 
+                            WHEN $sortBy IS NULL THEN 3
+                            WHEN $sortBy > 0 THEN 1
+                            WHEN $sortBy = 0 THEN 2
+                            ELSE 2
+                        END,
+                        CASE 
+                            WHEN $sortBy > 0 THEN $sortBy
+                            ELSE -$sortBy
+                        END DESC
+                    ");
                 }
             }
 
@@ -131,15 +132,11 @@ class RankingChangeController extends Controller
             $rankingChanges = $query->paginate(100)->withQueryString();
             
             // 获取统计信息
-            $totalCount = RankingChange::count();
             $todayCount = RankingChange::whereDate('record_date', today())->count();
             
             // 计算过滤后的记录数
             $filteredQuery = clone $query;
             $filteredCount = $filteredQuery->count();
-
-            // 获取最新记录日期
-            $latestDate = RankingChange::max('record_date');
 
             return view('ranking-changes.index', compact(
                 'rankingChanges',
@@ -147,11 +144,8 @@ class RankingChangeController extends Controller
                 'sortOrder',
                 'filterField',
                 'filterValue',
-                'trendFilter',
-                'totalCount',
                 'todayCount',
-                'filteredCount',
-                'latestDate'
+                'filteredCount'
             ));
 
         } catch (\Exception $e) {
