@@ -137,10 +137,12 @@
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
+                                            <a href="https://{{ $result['domain'] }}" target="_blank" title="访问 {{ $result['domain'] }}">
                                             <img src="https://www.google.com/s2/favicons?domain={{ $result['domain'] }}" 
                                                  alt="{{ $result['domain'] }}" 
                                                  class="w-4 h-4 mr-3 rounded-sm"
                                                  onerror="this.style.display='none'">
+                                            </a>
                                             <a href="{{ route('domain.ranking', $result['domain']) }}" 
                                                class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                                                 {{ $result['domain'] }}
