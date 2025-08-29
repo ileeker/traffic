@@ -173,10 +173,15 @@
                                             <img src="https://www.google.com/s2/favicons?domain={{ $change->domain }}" 
                                                  alt="{{ $change->domain }}" 
                                                  class="w-4 h-4 mr-3 rounded-sm"
+                                                 style="margin-right:2px"
                                                  onerror="this.style.display='none'">
                                             <a href="{{ route('domain.ranking', ['domain' => $change->domain]) }}" 
                                                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                                                 {{ $change->domain }}
+                                            </a>
+                                            <a href="https://{{ $change->domain }}" target="_blank" title="访问 {{ $change->domain }}">
+                                                <!-- 纯文本符号 -->
+                                                <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
                                             </a>
                                         </div>
                                     </td>
