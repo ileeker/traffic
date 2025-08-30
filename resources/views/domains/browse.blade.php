@@ -12,6 +12,48 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <!-- 新增：域名访问测试按钮 -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">域名访问性测试</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">点击按钮测试当前页面所有域名的HTTP/HTTPS访问性</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button id="testAllDomains" 
+                                    class="px-4 py-2 bg-green-600 text-black rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                测试所有域名
+                            </button>
+                            <button id="stopTest" 
+                                    class="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
+                                停止测试
+                            </button>
+                            <button id="clearResults" 
+                                    class="px-4 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
+                                清除结果
+                            </button>
+                        </div>
+                    </div>
+                    <div id="testProgress" class="mt-4 hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">测试进度：<span id="progressText">0/0</span></span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                成功: <span id="successCount" class="text-green-600 font-bold">0</span> | 
+                                失败: <span id="failCount" class="text-red-600 font-bold">0</span> | 
+                                超时: <span id="timeoutCount" class="text-yellow-600 font-bold">0</span>
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                            <div id="progressBar" class="bg-green-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 统计信息、排序控制和过滤器 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
@@ -184,6 +226,8 @@
                                                 <!-- 纯文本符号 -->
                                                 <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
                                             </a>
+                                            <!-- 新增：访问状态指示器 -->
+                                            <span class="domain-test-status ml-2" data-domain="{{ $domain->domain }}"></span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -335,6 +379,203 @@
                     document.getElementById('applyFilter').click();
                 }
             });
+
+            // ============ 新增：域名访问测试功能 ============
+            let isTestRunning = false;
+            let shouldStopTest = false;
+            
+            const testBtn = document.getElementById('testAllDomains');
+            const stopBtn = document.getElementById('stopTest');
+            const clearBtn = document.getElementById('clearResults');
+            const progressDiv = document.getElementById('testProgress');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const successCount = document.getElementById('successCount');
+            const failCount = document.getElementById('failCount');
+            const timeoutCount = document.getElementById('timeoutCount');
+            
+            // 获取所有域名
+            function getAllDomains() {
+                const domains = [];
+                document.querySelectorAll('.domain-test-status').forEach(el => {
+                    const domain = el.getAttribute('data-domain');
+                    if (domain) {
+                        domains.push({
+                            domain: domain,
+                            element: el
+                        });
+                    }
+                });
+                return domains;
+            }
+            
+            // 测试单个域名
+            async function testDomain(domain, timeout = 5000) {
+                const protocols = ['https://', 'http://'];
+                
+                for (const protocol of protocols) {
+                    try {
+                        // 使用Image对象测试（通过favicon）
+                        const result = await new Promise((resolve) => {
+                            const img = new Image();
+                            const timer = setTimeout(() => {
+                                img.src = '';
+                                resolve({ success: false, protocol: protocol, method: 'timeout' });
+                            }, timeout);
+                            
+                            img.onload = () => {
+                                clearTimeout(timer);
+                                resolve({ success: true, protocol: protocol, method: 'favicon' });
+                            };
+                            
+                            img.onerror = () => {
+                                clearTimeout(timer);
+                                // 尝试使用fetch（会受CORS限制，但某些情况下仍能判断）
+                                fetch(protocol + domain, { mode: 'no-cors', method: 'HEAD' })
+                                    .then(() => {
+                                        resolve({ success: true, protocol: protocol, method: 'fetch' });
+                                    })
+                                    .catch(() => {
+                                        resolve({ success: false, protocol: protocol, method: 'error' });
+                                    });
+                            };
+                            
+                            img.src = protocol + domain + '/favicon.ico';
+                        });
+                        
+                        if (result.success) {
+                            return result;
+                        }
+                    } catch (error) {
+                        console.error(`Error testing ${domain}:`, error);
+                    }
+                }
+                
+                return { success: false, protocol: null, method: 'failed' };
+            }
+            
+            // 更新域名状态显示
+            function updateDomainStatus(element, status) {
+                element.innerHTML = '';
+                
+                if (status.success) {
+                    element.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                            ✓ ${status.protocol ? status.protocol.replace('://', '') : ''}
+                        </span>
+                    `;
+                } else if (status.method === 'timeout') {
+                    element.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+                            ⏱ 超时
+                        </span>
+                    `;
+                } else {
+                    element.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+                            ✗ 失败
+                        </span>
+                    `;
+                }
+            }
+            
+            // 批量测试所有域名
+            async function testAllDomains() {
+                if (isTestRunning) return;
+                
+                isTestRunning = true;
+                shouldStopTest = false;
+                
+                const domains = getAllDomains();
+                const total = domains.length;
+                let completed = 0;
+                let success = 0;
+                let fail = 0;
+                let timeout = 0;
+                
+                // 显示进度条
+                testBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                progressDiv.classList.remove('hidden');
+                
+                // 更新进度
+                function updateProgress() {
+                    const percent = (completed / total * 100).toFixed(1);
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = `${completed}/${total}`;
+                    successCount.textContent = success;
+                    failCount.textContent = fail;
+                    timeoutCount.textContent = timeout;
+                }
+                
+                // 设置测试中状态
+                domains.forEach(item => {
+                    item.element.innerHTML = `
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100">
+                            <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            测试中
+                        </span>
+                    `;
+                });
+                
+                // 批量测试（并发限制）
+                const concurrency = 5; // 同时测试5个域名
+                for (let i = 0; i < domains.length; i += concurrency) {
+                    if (shouldStopTest) break;
+                    
+                    const batch = domains.slice(i, i + concurrency);
+                    const promises = batch.map(async (item) => {
+                        if (shouldStopTest) return;
+                        
+                        const result = await testDomain(item.domain);
+                        updateDomainStatus(item.element, result);
+                        
+                        if (result.success) {
+                            success++;
+                        } else if (result.method === 'timeout') {
+                            timeout++;
+                        } else {
+                            fail++;
+                        }
+                        
+                        completed++;
+                        updateProgress();
+                    });
+                    
+                    await Promise.all(promises);
+                }
+                
+                // 完成测试
+                isTestRunning = false;
+                stopBtn.classList.add('hidden');
+                clearBtn.classList.remove('hidden');
+                testBtn.textContent = '重新测试';
+                testBtn.classList.remove('hidden');
+            }
+            
+            // 停止测试
+            stopBtn.addEventListener('click', function() {
+                shouldStopTest = true;
+                stopBtn.classList.add('hidden');
+                testBtn.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+            });
+            
+            // 清除结果
+            clearBtn.addEventListener('click', function() {
+                document.querySelectorAll('.domain-test-status').forEach(el => {
+                    el.innerHTML = '';
+                });
+                progressDiv.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+                testBtn.textContent = '测试所有域名';
+            });
+            
+            // 开始测试
+            testBtn.addEventListener('click', testAllDomains);
         });
     </script>
 </x-app-layout>
