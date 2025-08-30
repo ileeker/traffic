@@ -67,7 +67,7 @@ class RankingChangeController extends Controller
                     'year_trend'
                 ]);
 
-            // 应用数值筛选
+            // 应用数值筛选 - 优化版本，避免使用 ABS()
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 $filterFields = [
                     'current_ranking',
@@ -83,50 +83,32 @@ class RankingChangeController extends Controller
                 if (in_array($filterField, $filterFields)) {
                     $filterValue = (int)$filterValue;
                     
-                    // 对于排名变化字段，使用绝对值过滤
-                    if ($filterField !== 'current_ranking') {
-                        $query->whereRaw("ABS($filterField) >= ?", [$filterValue]);
-                    } else {
+                    if ($filterField === 'current_ranking') {
+                        // 排名筛选：小于等于
                         $query->where($filterField, '<=', $filterValue);
+                    } else {
+                        // 变化值筛选：优化版本
+                        // 将 ABS(field) >= value 改为 (field >= value OR field <= -value)
+                        $query->where(function($q) use ($filterField, $filterValue) {
+                            $q->where($filterField, '>=', $filterValue)
+                              ->orWhere($filterField, '<=', -$filterValue);
+                        });
                     }
                 }
             }
 
-            // 应用排序 - 上升优先（负数表示上升）
+            // 应用排序 - 简化版本
             if ($sortBy === 'domain' || $sortBy === 'current_ranking') {
+                // 直接字段排序
                 $query->orderBy($sortBy, $sortOrder);
             } else {
-                // 对于变化字段：负数=上升，正数=下降
+                // 变化字段排序：负数表示上升，正数表示下降
                 if ($sortOrder === 'desc') {
-                    // 降序：上升最多的优先（最大的负数优先）
-                    // 例如：-100（上升100名）排在 -50（上升50名）前面
-                    $query->orderByRaw("
-                        CASE 
-                            WHEN $sortBy IS NULL THEN 3
-                            WHEN $sortBy < 0 THEN 1  -- 负数（上升）优先
-                            WHEN $sortBy = 0 THEN 2
-                            ELSE 2  -- 正数（下降）最后
-                        END,
-                        CASE 
-                            WHEN $sortBy < 0 THEN $sortBy  -- 负数按原值升序（-100在-10前面）
-                            ELSE -$sortBy  -- 正数变负后升序
-                        END ASC
-                    ");
+                    // 降序：上升最多的优先（最大的负数）
+                    $query->orderByRaw("$sortBy IS NULL, $sortBy ASC");
                 } else {
-                    // 升序：下降最多的优先（最大的正数优先）
-                    // 例如：100（下降100名）排在 50（下降50名）前面
-                    $query->orderByRaw("
-                        CASE 
-                            WHEN $sortBy IS NULL THEN 3
-                            WHEN $sortBy > 0 THEN 1  -- 正数（下降）优先
-                            WHEN $sortBy = 0 THEN 2
-                            ELSE 2  -- 负数（上升）最后
-                        END,
-                        CASE 
-                            WHEN $sortBy > 0 THEN -$sortBy  -- 正数变负后升序
-                            ELSE $sortBy  -- 负数按原值降序
-                        END ASC
-                    ");
+                    // 升序：下降最多的优先（最大的正数）
+                    $query->orderByRaw("$sortBy IS NULL, $sortBy DESC");
                 }
             }
 
@@ -137,8 +119,34 @@ class RankingChangeController extends Controller
             $todayCount = RankingChange::whereDate('record_date', today())->count();
             
             // 计算过滤后的记录数
-            $filteredQuery = clone $query;
-            $filteredCount = $filteredQuery->count();
+            $filteredCount = $todayCount;
+            if ($filterField && $filterValue !== null && $filterValue !== '') {
+                $filterFields = [
+                    'current_ranking',
+                    'daily_change',
+                    'week_change',
+                    'biweek_change',
+                    'triweek_change',
+                    'month_change',
+                    'quarter_change',
+                    'year_change'
+                ];
+                
+                if (in_array($filterField, $filterFields)) {
+                    $filterValue = (int)$filterValue;
+                    
+                    $countQuery = RankingChange::whereDate('record_date', today());
+                    if ($filterField === 'current_ranking') {
+                        $countQuery->where($filterField, '<=', $filterValue);
+                    } else {
+                        $countQuery->where(function($q) use ($filterField, $filterValue) {
+                            $q->where($filterField, '>=', $filterValue)
+                              ->orWhere($filterField, '<=', -$filterValue);
+                        });
+                    }
+                    $filteredCount = $countQuery->count();
+                }
+            }
 
             return view('ranking-changes.index', compact(
                 'rankingChanges',
@@ -156,7 +164,7 @@ class RankingChangeController extends Controller
     }
 
     /**
-     * 获取排名变化统计信息
+     * 获取排名变化统计信息 - 优化版本
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -166,7 +174,8 @@ class RankingChangeController extends Controller
         try {
             $date = $request->get('date', today());
             
-            $stats = DB::table('ranking_changes')
+            // 基础统计（不包含ABS计算）
+            $baseStats = DB::table('ranking_changes')
                 ->where('record_date', $date)
                 ->select([
                     DB::raw('COUNT(*) as total_domains'),
@@ -176,16 +185,90 @@ class RankingChangeController extends Controller
                     DB::raw('COUNT(CASE WHEN week_trend = "up" THEN 1 END) as week_up'),
                     DB::raw('COUNT(CASE WHEN week_trend = "down" THEN 1 END) as week_down'),
                     DB::raw('COUNT(CASE WHEN week_trend = "stable" THEN 1 END) as week_stable'),
-                    DB::raw('AVG(current_ranking) as avg_ranking'),
-                    DB::raw('MAX(ABS(daily_change)) as max_daily_change'),
-                    DB::raw('MAX(ABS(week_change)) as max_week_change')
+                    DB::raw('AVG(current_ranking) as avg_ranking')
                 ])
                 ->first();
+            
+            // 分别获取最大正值和最小负值
+            $maxChanges = $this->getMaxChanges($date);
+            
+            // 合并结果
+            $stats = (object) array_merge(
+                (array) $baseStats,
+                $maxChanges
+            );
 
             return response()->json($stats);
 
         } catch (\Exception $e) {
             return response()->json(['error' => '统计信息获取失败'], 500);
+        }
+    }
+    
+    /**
+     * 获取最大变化值 - 索引友好版本
+     */
+    private function getMaxChanges(string $date): array
+    {
+        $result = [];
+        
+        $changeFields = [
+            'daily_change' => 'max_daily_change',
+            'week_change' => 'max_week_change',
+            'month_change' => 'max_month_change',
+            'quarter_change' => 'max_quarter_change'
+        ];
+        
+        foreach ($changeFields as $field => $resultKey) {
+            // 获取最大负值（最大上升）
+            $maxUp = DB::table('ranking_changes')
+                ->where('record_date', $date)
+                ->where($field, '<', 0)
+                ->min($field);
+            
+            // 获取最大正值（最大下降）
+            $maxDown = DB::table('ranking_changes')
+                ->where('record_date', $date)
+                ->where($field, '>', 0)
+                ->max($field);
+            
+            // 比较绝对值
+            $maxUpAbs = $maxUp ? abs($maxUp) : 0;
+            $maxDownAbs = $maxDown ? abs($maxDown) : 0;
+            
+            $result[$resultKey] = max($maxUpAbs, $maxDownAbs);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * 获取域名的历史排名变化
+     */
+    public function getDomainHistory(Request $request, string $domain)
+    {
+        try {
+            $history = RankingChange::where('domain', $domain)
+                ->orderBy('record_date', 'desc')
+                ->limit(30) // 最近30天
+                ->get([
+                    'record_date',
+                    'current_ranking',
+                    'daily_change',
+                    'daily_trend',
+                    'week_change',
+                    'week_trend',
+                    'month_change',
+                    'month_trend'
+                ]);
+
+            return response()->json([
+                'domain' => $domain,
+                'history' => $history
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => '获取历史数据失败'], 500);
         }
     }
 }
