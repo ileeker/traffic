@@ -150,6 +150,11 @@
                                     <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 (100→1)</option>
                                     <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
                                     <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
+                                    
+                                    <!-- 新增：注册时间排序选项 -->
+                                    <option value="registered_at-asc" {{ $sortBy == 'registered_at' && $sortOrder == 'asc' ? 'selected' : '' }}>注册时间 (早→晚)</option>
+                                    <option value="registered_at-desc" {{ $sortBy == 'registered_at' && $sortOrder == 'desc' ? 'selected' : '' }}>注册时间 (晚→早)</option>    
+                                    
                                     <option value="daily_change-desc" {{ $sortBy == 'daily_change' && $sortOrder == 'desc' ? 'selected' : '' }}>日上升最多</option>
                                     <option value="daily_change-asc" {{ $sortBy == 'daily_change' && $sortOrder == 'asc' ? 'selected' : '' }}>日下降最多</option>
                                     <option value="week_change-desc" {{ $sortBy == 'week_change' && $sortOrder == 'desc' ? 'selected' : '' }}>周上升最多</option>

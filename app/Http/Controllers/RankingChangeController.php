@@ -32,8 +32,8 @@ class RankingChangeController extends Controller
                 'biweek_change',
                 'triweek_change',
                 'month_change',
-                'quarter_change'
-                // 移除 year_change，因为现在显示 registered_at
+                'quarter_change',
+                'registered_at'  // 添加注册时间排序
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -49,24 +49,30 @@ class RankingChangeController extends Controller
             $query = RankingChange::whereDate('record_date', today())
                 ->with('websiteIntroduction')  // 添加预加载关联
                 ->select([
-                    'id',
-                    'domain',
-                    'current_ranking',
-                    'daily_change',
-                    'daily_trend',
-                    'week_change',
-                    'week_trend',
-                    'biweek_change',
-                    'biweek_trend',
-                    'triweek_change',
-                    'triweek_trend',
-                    'month_change',
-                    'month_trend',
-                    'quarter_change',
-                    'quarter_trend',
-                    'year_change',
-                    'year_trend'
+                    'ranking_changes.id',
+                    'ranking_changes.domain',
+                    'ranking_changes.current_ranking',
+                    'ranking_changes.daily_change',
+                    'ranking_changes.daily_trend',
+                    'ranking_changes.week_change',
+                    'ranking_changes.week_trend',
+                    'ranking_changes.biweek_change',
+                    'ranking_changes.biweek_trend',
+                    'ranking_changes.triweek_change',
+                    'ranking_changes.triweek_trend',
+                    'ranking_changes.month_change',
+                    'ranking_changes.month_trend',
+                    'ranking_changes.quarter_change',
+                    'ranking_changes.quarter_trend',
+                    'ranking_changes.year_change',
+                    'ranking_changes.year_trend'
                 ]);
+
+            // 如果需要按注册时间排序，添加 left join
+            if ($sortBy === 'registered_at') {
+                $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
+                      ->addSelect('website_introductions.registered_at');
+            }
 
             // 应用数值筛选 - 优化版本，避免使用 ABS()
             if ($filterField && $filterValue !== null && $filterValue !== '') {
@@ -102,6 +108,14 @@ class RankingChangeController extends Controller
             if ($sortBy === 'domain' || $sortBy === 'current_ranking') {
                 // 直接字段排序
                 $query->orderBy($sortBy, $sortOrder);
+            } else if ($sortBy === 'registered_at') {
+                // 注册时间排序
+                // 需要先确保已经 join 了 website_introductions 表
+                if (!$query->getQuery()->joins) {
+                    $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain');
+                }
+                // NULL 值放在最后
+                $query->orderByRaw("website_introductions.registered_at IS NULL, website_introductions.registered_at $sortOrder");
             } else {
                 // 变化字段排序：负数表示上升，正数表示下降
                 if ($sortOrder === 'desc') {
