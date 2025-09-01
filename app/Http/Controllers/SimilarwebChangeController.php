@@ -23,7 +23,10 @@ class SimilarwebChangeController extends Controller
             $sortOrder = $request->get('order', 'desc');
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $recordMonth = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+
+            $currentMonth = SimilarwebChange::find(1)->record_month;
+            // $recordMonth = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+            $recordMonth = $request->get('month', $currentMonth);
             
             // 验证排序字段
             $allowedSorts = [
@@ -188,7 +191,10 @@ class SimilarwebChangeController extends Controller
     public function getStats(Request $request)
     {
         try {
-            $month = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+
+            $currentMonth = SimilarwebChange::find(1)->record_month;
+            // $month = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+            $month = $request->get('month', $currentMonth);
             
             // 基础统计查询
             $baseStats = DB::table('similarweb_changes')
@@ -312,7 +318,9 @@ class SimilarwebChangeController extends Controller
             // 获取查询参数
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $recordMonth = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+            $currentMonth = SimilarwebChange::find(1)->record_month;
+            // $recordMonth = $request->get('month', Carbon::now()->subMonth()->format('Y-m'));
+            $recordMonth = $request->get('month', $currentMonth);
             $sortBy = $request->get('sort', 'current_emv');
             $sortOrder = $request->get('order', 'desc');
             
