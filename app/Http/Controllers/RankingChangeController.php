@@ -32,8 +32,8 @@ class RankingChangeController extends Controller
                 'biweek_change',
                 'triweek_change',
                 'month_change',
-                'quarter_change',
-                'year_change'
+                'quarter_change'
+                // 移除 year_change，因为现在显示 registered_at
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -45,8 +45,9 @@ class RankingChangeController extends Controller
                 $sortOrder = 'asc';
             }
 
-            // 构建查询 - 只查询今天的数据
+            // 构建查询 - 只查询今天的数据，并预加载 websiteIntroduction 关联
             $query = RankingChange::whereDate('record_date', today())
+                ->with('websiteIntroduction')  // 添加预加载关联
                 ->select([
                     'id',
                     'domain',
@@ -76,8 +77,8 @@ class RankingChangeController extends Controller
                     'biweek_change',
                     'triweek_change',
                     'month_change',
-                    'quarter_change',
-                    'year_change'
+                    'quarter_change'
+                    // 移除 year_change
                 ];
                 
                 if (in_array($filterField, $filterFields)) {
@@ -128,8 +129,8 @@ class RankingChangeController extends Controller
                     'biweek_change',
                     'triweek_change',
                     'month_change',
-                    'quarter_change',
-                    'year_change'
+                    'quarter_change'
+                    // 移除 year_change
                 ];
                 
                 if (in_array($filterField, $filterFields)) {

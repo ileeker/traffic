@@ -122,7 +122,7 @@
                                     <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
                                     <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
                                     <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
-                                    <option value="year_change" {{ $filterField == 'year_change' ? 'selected' : '' }}>年变化 ≥</option>
+                                    <!-- <option value="year_change" {{ $filterField == 'year_change' ? 'selected' : '' }}>年变化 ≥</option> -->
                                 </select>
                                 <input type="number" 
                                        id="filterValue"
@@ -162,8 +162,8 @@
                                     <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
                                     <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度上升最多</option>
                                     <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
-                                    <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年上升最多</option>
-                                    <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option>
+                                    <!-- <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年上升最多</option> -->
+                                    <!-- <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option> -->
                                 </select>
                             </div>
                         </div>
@@ -202,8 +202,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         季度变化
                                     </th>
+                                    <!-- 表头部分 - 将年变化改为注册时间 -->
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        年变化
+                                        注册时间
                                     </th>
                                 </tr>
                             </thead>
@@ -334,19 +335,30 @@
                                             <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
+                                    <!-- 表格数据部分 - 显示 registered_at -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        @if($change->year_change !== null)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                                @if($change->year_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
-                                                @elseif($change->year_trend === 'down') bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
-                                                @else bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-100
-                                                @endif">
-                                                @if($change->year_trend === 'up') ↑
-                                                @elseif($change->year_trend === 'down') ↓
-                                                @else →
-                                                @endif
-                                                {{ number_format(abs($change->year_change)) }}
-                                            </span>
+                                        @if($change->websiteIntroduction && $change->websiteIntroduction->registered_at)
+                                            @php
+                                                $registeredAt = \Carbon\Carbon::parse($change->websiteIntroduction->registered_at);
+                                                $now = \Carbon\Carbon::now();
+                                                $diffInDays = $registeredAt->diffInDays($now);
+                                                $diffInYears = $registeredAt->diffInYears($now);
+                                            @endphp
+                                            
+                                            <div class="flex flex-col">
+                                                <span class="text-gray-900 dark:text-white">
+                                                    {{ $registeredAt->format('Y-m-d') }}
+                                                </span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                    @if($diffInYears >= 1)
+                                                        {{ number_format($diffInYears, 1) }} 年
+                                                    @elseif($diffInDays >= 30)
+                                                        {{ round($diffInDays / 30) }} 月
+                                                    @else
+                                                        {{ $diffInDays }} 天
+                                                    @endif
+                                                </span>
+                                            </div>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
