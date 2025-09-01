@@ -134,8 +134,12 @@ class DomainController extends Controller
     public function browseDomains(Request $request)
     {
         try {
+
+            $currentMonth = SimilarwebDomain::find(1)->current_month;
+
             // 获取上个月的月份字符串 (如: 2025-07)
-            $lastMonth = now()->subMonth()->format('Y-m');
+            $lastMonth = $currentMonth;
+            // $lastMonth = now()->subMonth()->format('Y-m');
             
             // 获取排序参数
             $sortBy = $request->get('sort', 'current_emv'); // 默认按访问量排序
