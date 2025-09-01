@@ -26,22 +26,4 @@ class WebsiteIntroduction extends Model
         'archived_at' => 'datetime',  // 新增字段的类型转换
     ];
 
-    /**
-     * 与 Domain 的关系（多对一）
-     * 一个域名可以有一个介绍
-     */
-    public function domain()
-    {
-        return $this->belongsTo(Domain::class, 'domain', 'domain');
-    }
-
-    /**
-     * 与 SimilarwebDomain 的关系（多对一）
-     * 一个域名可以有一个介绍
-     */
-    public function similarwebDomain()
-    {
-        return $this->belongsTo(SimilarwebDomain::class, 'domain', 'domain');
-    }
-
 }

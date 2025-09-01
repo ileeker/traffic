@@ -129,6 +129,24 @@
                                         </p>
                                     </div>
                                 </div>
+                            
+                                <!-- 注册日期（新增） -->
+                                @if($websiteIntroduction && $websiteIntroduction->registered_at)
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-indigo-500 bg-opacity-10 rounded-full mr-3">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-600 dark:text-gray-400">注册日期</p>
+                                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                                            {{ $websiteIntroduction->registered_at->format('Y-m-d') }}
+                                        </p>
+                                    </div>
+                                </div>
+                                @endif
+                                
                             </div>
                             
                             <!-- 记录时间范围 -->

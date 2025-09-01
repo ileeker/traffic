@@ -19,7 +19,7 @@ class DomainController extends Controller
     {
         try {
             // 根据域名查找排名记录
-            $domainRecord = Domain::where('domain', $domain)->first();
+            $domainRecord = Domain::with('websiteIntroduction')->where('domain', $domain)->first();
             
             // 根据域名查找 SimilarwebDomain 记录
             $similarwebRecord = SimilarwebDomain::where('domain', $domain)->first();

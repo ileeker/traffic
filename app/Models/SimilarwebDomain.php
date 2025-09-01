@@ -61,4 +61,12 @@ class SimilarwebDomain extends Model
         return $this->hasOne(SimilarwebChange::class, 'domain', 'domain');
     }
 
+    /**
+     * 与 WebsiteIntroduction 的一对一关系
+     */
+    public function websiteIntroduction()
+    {
+        return $this->hasOne(WebsiteIntroduction::class, 'domain', 'domain');
+    }
+
 }
