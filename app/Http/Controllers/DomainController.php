@@ -68,8 +68,9 @@ class DomainController extends Controller
                 return redirect()->back()->with('error', '一次最多只能查询 100 个域名');
             }
 
-            // 批量查询 SimilarwebDomain 数据
-            $similarwebRecords = SimilarwebDomain::whereIn('domain', $domains)
+            // 批量查询 SimilarwebDomain 数据，并加载 websiteIntroduction 关联
+            $similarwebRecords = SimilarwebDomain::with('websiteIntroduction')
+                ->whereIn('domain', $domains)
                 ->select([
                     'domain',
                     'current_month', 
@@ -108,7 +109,9 @@ class DomainController extends Controller
                             'paid' => $record->ts_paid_referrals,
                             'mail' => $record->ts_mail
                         ],
-                        'last_updated' => $record->last_updated
+                        'last_updated' => $record->last_updated,
+                        // 添加 websiteIntroduction 数据，处理可能为 null 的情况
+                        'registered_at' => optional($record->websiteIntroduction)->registered_at
                     ];
                     $foundDomains[] = $domain;
                 } else {

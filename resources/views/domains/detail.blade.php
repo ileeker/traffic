@@ -128,7 +128,7 @@
                                         邮件
                                     </th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        更新时间
+                                        注册时间
                                     </th>
                                 </tr>
                             </thead>
@@ -179,7 +179,11 @@
                                         {{ number_format($result['traffic_sources']['mail'] * 100, 1) }}%
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {{ \Carbon\Carbon::parse($result['last_updated'])->format('Y-m-d') }}
+                                        @if($result['registered_at'])
+                                            {{ \Carbon\Carbon::parse($result['registered_at'])->format('Y-m-d') }}
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
@@ -217,7 +221,7 @@
                 const results = @json($results);
                 
                 // CSV 头部
-                let csvContent = 'Domain,Month,Monthly_Visits,Global_Rank,Direct_Traffic,Search_Traffic,Referral_Traffic,Social_Traffic,Paid_Traffic,Mail_Traffic,Last_Updated\n';
+                let csvContent = 'Domain,Month,Monthly_Visits,Global_Rank,Direct_Traffic,Search_Traffic,Referral_Traffic,Social_Traffic,Paid_Traffic,Mail_Traffic,Registered_At\n';
                 
                 // CSV 数据
                 results.forEach(result => {
@@ -232,7 +236,7 @@
                         (result.traffic_sources.social * 100).toFixed(1) + '%',
                         (result.traffic_sources.paid * 100).toFixed(1) + '%',
                         (result.traffic_sources.mail * 100).toFixed(1) + '%',
-                        new Date(result.last_updated).toISOString().split('T')[0]
+                        result.registered_at ? new Date(result.registered_at).toISOString().split('T')[0] : ''
                     ];
                     csvContent += row.join(',') + '\n';
                 });
