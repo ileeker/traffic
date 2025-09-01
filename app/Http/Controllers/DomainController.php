@@ -29,8 +29,11 @@ class DomainController extends Controller
                 return redirect()->back()->with('error', '域名 ' . $domain . ' 未找到任何记录');
             }
             
+            // 获取 websiteIntroduction（从任一个存在的记录中获取）
+            $websiteIntroduction = optional($domainRecord)->websiteIntroduction;
+
             // 返回视图并传递数据
-            return view('domain.ranking', compact('domainRecord', 'similarwebRecord'));
+            return view('domain.ranking', compact('domainRecord', 'similarwebRecord', 'websiteIntroduction'));
             
         } catch (\Exception $e) {
             // 处理异常情况
