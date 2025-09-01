@@ -26,6 +26,9 @@ return new class extends Migration
             
             // 2. 复合索引：registered_at + domain
             $table->index(['registered_at', 'domain'], 'idx_registered_domain');
+            
+            // 3. 复合索引：domain + intro（限制intro长度避免索引过大）
+            $table->index(['domain', 'intro(100)'], 'idx_domain_intro');
         });
     }
 
