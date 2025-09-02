@@ -28,7 +28,7 @@
 
                     {{-- 统计信息 (修正：在所有屏幕上都强制水平排列) --}}
                     <div class="mb-6 grid grid-cols-3 gap-6">
-                        <div class="ml-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
@@ -37,46 +37,23 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="ml-3">
                                     <div class="text-sm font-medium text-blue-600 dark:text-blue-400">分类总数</div>
                                     <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">{{ $categoriesWithTranslation->count() }}</div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="ml-3 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 p-6 rounded-lg border border-green-200 dark:border-green-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div>
+
+                                <div class="ml-3">
                                     <div class="text-sm font-medium text-green-600 dark:text-green-400">已分类域名</div>
                                     <div class="text-2xl font-bold text-green-900 dark:text-green-100">{{ number_format($categoriesWithTranslation->sum('count')) }}</div>
                                 </div>
 
-                                
-                            </div>
-                        </div>
-                        
-                        <div class="ml-3 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 p-6 rounded-lg border border-purple-200 dark:border-purple-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div>
+                                <div class="ml-3">
                                     <div class="text-sm font-medium text-purple-600 dark:text-purple-400">平均每分类</div>
                                     <div class="text-2xl font-bold text-purple-900 dark:text-purple-100">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</div>
                                 </div>
                             </div>
                         </div>
+                        
                     </div>
 
                     {{-- 分类列表 --}}
