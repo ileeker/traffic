@@ -1,11 +1,11 @@
 <x-app-layout>
-    {{-- 页面标题 --}}
+    {{-- 页面标题 (字体已加大) --}}
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            <h2 class="font-semibold text-2xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('域名分类统计') }}
             </h2>
-            <div class="text-sm text-gray-600 dark:text-gray-400">
+            <div class="text-base text-gray-600 dark:text-gray-400">
                 总域名数量: {{ number_format($totalDomains) }}
             </div>
         </div>
@@ -17,17 +17,17 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
-                    {{-- 搜索框 --}}
+                    {{-- 搜索框 (字体已加大) --}}
                     <div class="mb-6">
                         <input type="text" id="categorySearch" placeholder="搜索分类..." 
-                            class="block w-full rounded-md border-gray-300 shadow-sm 
+                            class="block w-full text-base rounded-md border-gray-300 shadow-sm 
                                 focus:border-indigo-300 focus:ring focus:ring-indigo-200 
                                 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 
                                 dark:text-gray-300">
                     </div>
 
-                    {{-- 统计信息 --}}
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {{-- 统计信息 (修改为在小屏幕上也水平排列) --}}
+                    <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
@@ -102,26 +102,29 @@
                             <tbody id="categoryTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($categoriesWithTranslation as $index => $categoryData)
                                 <tr class="category-row hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 dark:text-gray-100">
                                         {{ $index + 1 }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        <span class="font-mono text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
-                                            {{ $categoryData->category }}
-                                        </span>
+                                    {{-- 英文分类已添加超链接 --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
+                                        <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" class="hover:opacity-80 transition-opacity">
+                                            <span class="font-mono text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                                                {{ $categoryData->category }}
+                                            </span>
+                                        </a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
                                         <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" 
                                             class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                                             {{ $categoryData->chinese_name }}
                                         </a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
                                             {{ number_format($categoryData->count) }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500 dark:text-gray-400">
                                         {{ number_format(($categoryData->count / $totalDomains) * 100, 2) }}%
                                         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
                                             <div class="bg-blue-600 h-1.5 rounded-full" style="width: {{ ($categoryData->count / $categoriesWithTranslation->max('count')) * 100 }}%"></div>
@@ -147,7 +150,7 @@
         </div>
     </div>
 
-    {{-- JavaScript 搜索功能 --}}
+    {{-- JavaScript 搜索功能 (No Changes) --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('categorySearch');
