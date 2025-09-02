@@ -15,7 +15,7 @@ class DomainController extends Controller
      * @param string $domain
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function getRanking(string $domain)
+    public function getDomainDetail(string $domain)
     {
         try {
             // 根据域名查找排名记录

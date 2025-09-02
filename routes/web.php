@@ -31,11 +31,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // 详细页面路由
-    Route::get('/domain/{domain}', [DomainController::class, 'getRanking'])->name('domain.ranking');
-    Route::get('/test/{domain}', [DomainController::class, 'getTest'])->name('domain.test');
+    Route::get('/domain/{domain}', [DomainController::class, 'getDomainDetail'])->name('domain.detail');
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
-    Route::get('/domains', [DomainController::class, 'getDomainsRanking'])->name('domains.ranking');
-
+    
     // 域名数据浏览路由
     Route::get('/domains/browse', [DomainController::class, 'browseDomains'])->name('domains.browse');
 
@@ -43,18 +41,12 @@ Route::middleware('auth')->group(function () {
     Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
         // 排名变化列表页面
         Route::get('/', [RankingChangeController::class, 'index'])->name('index');
-        
-        // 获取统计信息API
-        Route::get('/stats', [RankingChangeController::class, 'getStats'])->name('stats');
     });
 
     // Similarweb EMV变化相关路由
     Route::prefix('similarweb-changes')->name('similarweb-changes.')->group(function () {
         // EMV变化列表页面
         Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
-        
-        // 获取统计信息API
-        Route::get('/stats', [SimilarwebChangeController::class, 'getStats'])->name('stats');
     });
 
 });
