@@ -87,7 +87,7 @@
                                     {{-- 英文分类已添加超链接 --}}
                                     <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
                                         <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" class="hover:opacity-80 transition-opacity">
-                                            <span class="font-mono text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
+                                            <span class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
                                                 {{ $categoryData->category }}
                                             </span>
                                         </a>
