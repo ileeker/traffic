@@ -1,11 +1,20 @@
-<x-app-layout>
-    {{-- 页面标题 (字体已加大) --}}
+{{-- 统计信息 --}}
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
+                                        </svg>
+                                    <x-app-layout>
+    {{-- 页面标题 --}}
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-2xl text-gray-800 dark:text-gray-200 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('域名分类统计') }}
             </h2>
-            <div class="text-base text-gray-600 dark:text-gray-400">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
                 总域名数量: {{ number_format($totalDomains) }}
             </div>
         </div>
@@ -17,61 +26,51 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
 
-                    {{-- 搜索框 (字体已加大) --}}
-                    <div class="mb-6">
+                    {{-- 搜索框 --}}
+                    <div class="mb-8">
                         <input type="text" id="categorySearch" placeholder="搜索分类..." 
-                            class="block w-full text-base rounded-md border-gray-300 shadow-sm 
+                            class="block w-full rounded-md border-gray-300 shadow-sm text-base py-3 px-4
                                 focus:border-indigo-300 focus:ring focus:ring-indigo-200 
                                 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 
-                                dark:text-gray-300">
+                                dark:text-gray-300 dark:placeholder-gray-400">
                     </div>
 
-                    {{-- 统计信息 (修正：在所有屏幕上都强制水平排列) --}}
-                    <div class="mb-6 grid grid-cols-3 gap-6">
-                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
-                                        </svg>
-                                    </div>
+                    {{-- 统计信息 - 水平一行显示 --}}
+                    <div class="mb-8 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 p-8 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <div class="flex justify-around items-center text-center">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
+                                    </svg>
                                 </div>
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-blue-600 dark:text-blue-400">分类总数</div>
-                                    <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">{{ $categoriesWithTranslation->count() }}</div>
+                                <div>
+                                    <div class="text-base font-medium text-blue-600 dark:text-blue-400">分类总数</div>
+                                    <div class="text-3xl font-bold text-blue-900 dark:text-blue-100">{{ $categoriesWithTranslation->count() }}</div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 p-6 rounded-lg border border-green-200 dark:border-green-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                    </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
                                 </div>
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-green-600 dark:text-green-400">已分类域名</div>
-                                    <div class="text-2xl font-bold text-green-900 dark:text-green-100">{{ number_format($categoriesWithTranslation->sum('count')) }}</div>
+                                <div>
+                                    <div class="text-base font-medium text-green-600 dark:text-green-400">已分类域名</div>
+                                    <div class="text-3xl font-bold text-green-900 dark:text-green-100">{{ number_format($categoriesWithTranslation->sum('count')) }}</div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 p-6 rounded-lg border border-purple-200 dark:border-purple-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                        </svg>
-                                    </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
                                 </div>
-                                <div class="ml-3">
-                                    <div class="text-sm font-medium text-purple-600 dark:text-purple-400">平均每分类</div>
-                                    <div class="text-2xl font-bold text-purple-900 dark:text-purple-100">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</div>
+                                <div>
+                                    <div class="text-base font-medium text-purple-600 dark:text-purple-400">平均每分类</div>
+                                    <div class="text-3xl font-bold text-purple-900 dark:text-purple-100">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -105,29 +104,27 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-base font-medium text-gray-900 dark:text-gray-100">
                                         {{ $index + 1 }}
                                     </td>
-                                    {{-- 英文分类已添加超链接 --}}
-                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
-                                        <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" class="hover:opacity-80 transition-opacity">
-                                            <span class="font-mono text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
-                                                {{ $categoryData->category }}
-                                            </span>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                        <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" 
+                                            class="font-mono text-sm bg-gray-100 dark:bg-gray-600 px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors duration-200">
+                                            {{ $categoryData->category }}
                                         </a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" 
-                                            class="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+                                            class="font-medium text-base text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">
                                             {{ $categoryData->chinese_name }}
                                         </a>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-gray-100">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
                                             {{ number_format($categoryData->count) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-base text-gray-500 dark:text-gray-400">
                                         {{ number_format(($categoryData->count / $totalDomains) * 100, 2) }}%
-                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: {{ ($categoryData->count / $categoriesWithTranslation->max('count')) * 100 }}%"></div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ ($categoryData->count / $categoriesWithTranslation->max('count')) * 100 }}%"></div>
                                         </div>
                                     </td>
                                 </tr>
@@ -150,7 +147,7 @@
         </div>
     </div>
 
-    {{-- JavaScript 搜索功能 (No Changes) --}}
+    {{-- JavaScript 搜索功能 --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('categorySearch');
