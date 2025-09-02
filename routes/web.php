@@ -36,6 +36,9 @@ Route::middleware('auth')->group(function () {
     
     // 域名数据浏览路由
     Route::get('/domains/browse', [DomainController::class, 'browseDomains'])->name('domains.browse');
+    
+    // 新增：域名分类统计页面
+    Route::get('/domains/categories', [DomainController::class, 'showCategories'])->name('domains.categories');
 
     // 排名变化相关路由
     Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
