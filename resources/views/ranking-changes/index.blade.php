@@ -391,6 +391,7 @@
         </div>
     </div>
 
+<!-- 将此JavaScript代码替换原有的script标签内容 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 页码跳转功能
@@ -481,9 +482,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ============ 新增：域名访问测试功能 ============
+    // ============ 增强版：域名访问测试功能 ============
     let isTestRunning = false;
     let shouldStopTest = false;
+    let hiddenDomains = new Set(); // 存储隐藏的域名
+    let hideFailedDomains = true; // 是否隐藏失败的域名（默认开启）
     
     const testBtn = document.getElementById('testAllDomains');
     const stopBtn = document.getElementById('stopTest');
@@ -495,16 +498,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const failCount = document.getElementById('failCount');
     const timeoutCount = document.getElementById('timeoutCount');
     
+    // 在按钮组中添加显示/隐藏失败域名的切换按钮
+    function addToggleButton() {
+        const buttonContainer = testBtn.parentElement;
+        
+        // 检查是否已存在切换按钮
+        if (!document.getElementById('toggleFailedDomains')) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.id = 'toggleFailedDomains';
+            toggleBtn.className = 'px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center hidden';
+            toggleBtn.innerHTML = `
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span id="toggleButtonText">显示失败域名</span>
+            `;
+            toggleBtn.addEventListener('click', toggleFailedDomains);
+            buttonContainer.appendChild(toggleBtn);
+        }
+    }
+    
+    // 初始化切换按钮
+    addToggleButton();
+    
     // 获取所有域名
     function getAllDomains() {
         const domains = [];
-        document.querySelectorAll('.domain-test-status').forEach(el => {
-            const domain = el.getAttribute('data-domain');
-            if (domain) {
-                domains.push({
-                    domain: domain,
-                    element: el
-                });
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const statusEl = row.querySelector('.domain-test-status');
+            if (statusEl) {
+                const domain = statusEl.getAttribute('data-domain');
+                if (domain) {
+                    domains.push({
+                        domain: domain,
+                        element: statusEl,
+                        row: row
+                    });
+                }
             }
         });
         return domains;
@@ -562,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status.success) {
             element.innerHTML = `
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                    ✓ ${status.protocol ? status.protocol.replace('://', '') : ''}
+                    ✔ ${status.protocol ? status.protocol.replace('://', '') : ''}
                 </span>
             `;
         } else if (status.method === 'timeout') {
@@ -580,12 +611,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // 隐藏或显示域名行
+    function hideDomainRow(row, domain) {
+        if (hideFailedDomains) {
+            row.style.display = 'none';
+            hiddenDomains.add(domain);
+        }
+    }
+    
+    function showDomainRow(row, domain) {
+        row.style.display = '';
+        hiddenDomains.delete(domain);
+    }
+    
+    // 切换显示/隐藏失败的域名
+    function toggleFailedDomains() {
+        hideFailedDomains = !hideFailedDomains;
+        const toggleBtn = document.getElementById('toggleFailedDomains');
+        const toggleText = document.getElementById('toggleButtonText');
+        
+        if (hideFailedDomains) {
+            toggleText.textContent = '显示失败域名';
+            // 隐藏所有失败的域名
+            hiddenDomains.forEach(domain => {
+                const rows = document.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const statusEl = row.querySelector('.domain-test-status');
+                    if (statusEl && statusEl.getAttribute('data-domain') === domain) {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        } else {
+            toggleText.textContent = '隐藏失败域名';
+            // 显示所有域名
+            document.querySelectorAll('tbody tr').forEach(row => {
+                row.style.display = '';
+            });
+        }
+    }
+    
     // 批量测试所有域名
     async function testAllDomains() {
         if (isTestRunning) return;
         
         isTestRunning = true;
         shouldStopTest = false;
+        hiddenDomains.clear(); // 清除之前的隐藏记录
         
         const domains = getAllDomains();
         const total = domains.length;
@@ -594,10 +666,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let fail = 0;
         let timeout = 0;
         
-        // 显示进度条
+        // 显示进度条和相关按钮
         testBtn.classList.add('hidden');
         stopBtn.classList.remove('hidden');
         progressDiv.classList.remove('hidden');
+        document.getElementById('toggleFailedDomains').classList.remove('hidden');
         
         // 更新进度
         function updateProgress() {
@@ -620,6 +693,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     测试中
                 </span>
             `;
+            // 先显示所有行
+            item.row.style.display = '';
         });
         
         // 批量测试（并发限制）
@@ -636,10 +711,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (result.success) {
                     success++;
-                } else if (result.method === 'timeout') {
-                    timeout++;
+                    showDomainRow(item.row, item.domain);
                 } else {
-                    fail++;
+                    if (result.method === 'timeout') {
+                        timeout++;
+                    } else {
+                        fail++;
+                    }
+                    // 如果测试失败且设置为隐藏失败域名，则隐藏该行
+                    hideDomainRow(item.row, item.domain);
                 }
                 
                 completed++;
@@ -655,6 +735,12 @@ document.addEventListener('DOMContentLoaded', function() {
         clearBtn.classList.remove('hidden');
         testBtn.textContent = '重新测试';
         testBtn.classList.remove('hidden');
+        
+        // 如果有失败的域名，显示统计信息
+        if (fail > 0 || timeout > 0) {
+            const totalFailed = fail + timeout;
+            alert(`测试完成！\n成功: ${success} 个域名\n失败: ${fail} 个域名\n超时: ${timeout} 个域名\n\n${hideFailedDomains ? '失败的域名已被隐藏' : '所有域名都在显示'}`);
+        }
     }
     
     // 停止测试
@@ -667,16 +753,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 清除结果
     clearBtn.addEventListener('click', function() {
+        // 清除所有测试状态
         document.querySelectorAll('.domain-test-status').forEach(el => {
             el.innerHTML = '';
         });
+        
+        // 显示所有行
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = '';
+        });
+        
+        // 清除隐藏记录
+        hiddenDomains.clear();
+        
+        // 隐藏进度条和切换按钮
         progressDiv.classList.add('hidden');
         clearBtn.classList.add('hidden');
+        document.getElementById('toggleFailedDomains').classList.add('hidden');
+        
+        // 重置按钮文本
         testBtn.textContent = '测试所有域名';
+        document.getElementById('toggleButtonText').textContent = '显示失败域名';
+        hideFailedDomains = true;
     });
     
     // 开始测试
     testBtn.addEventListener('click', testAllDomains);
+    
+    // 从localStorage恢复隐藏设置
+    const savedHideFailedDomains = localStorage.getItem('hideFailedDomains');
+    if (savedHideFailedDomains !== null) {
+        hideFailedDomains = savedHideFailedDomains === 'true';
+    }
+    
+    // 保存隐藏设置到localStorage
+    window.addEventListener('beforeunload', function() {
+        localStorage.setItem('hideFailedDomains', hideFailedDomains);
+    });
 });
 </script>
 </x-app-layout>
