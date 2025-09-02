@@ -26,8 +26,8 @@
                                 dark:text-gray-300">
                     </div>
 
-                    {{-- 统计信息 (修改为在小屏幕上也水平排列) --}}
-                    <div class="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {{-- 统计信息 (修正：在所有屏幕上都强制水平排列) --}}
+                    <div class="mb-6 grid grid-cols-3 gap-6">
                         <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
