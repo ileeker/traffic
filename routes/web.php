@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     
     // 新增：域名分类统计页面
     Route::get('/domains/categories', [DomainController::class, 'showCategories'])->name('domains.categories');
+    
     // 显示指定分类下的所有域名
     Route::get('/domains/categories/{category}/domains', [DomainController::class, 'showCategoryDomains'])->name('domains.category.domains');
     

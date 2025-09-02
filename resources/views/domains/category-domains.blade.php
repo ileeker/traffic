@@ -26,7 +26,7 @@
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                     {{ $chineseName }} - 域名列表
                 </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $decodedCategory }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $originalCategory }}</p>
             </div>
         </div>
     </x-slot>
