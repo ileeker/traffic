@@ -1,13 +1,4 @@
-{{-- 统计信息 --}}
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
-                                        </svg>
-                                    <x-app-layout>
+<x-app-layout>
     {{-- 页面标题 --}}
     <x-slot name="header">
         <div class="flex justify-between items-center">
@@ -36,28 +27,51 @@
                     </div>
 
                     {{-- 统计信息 --}}
-                    <div class="mb-8">
-                        <div class="bg-gradient-to-r from-blue-50 via-green-50 to-purple-50 dark:from-blue-900 dark:via-green-900 dark:to-purple-900 p-8 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-                            <div class="text-center">
-                                <div class="inline-flex items-center space-x-8 text-6xl font-bold">
-                                    <div class="flex flex-col items-center">
-                                        <div class="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2">分类总数</div>
-                                        <div class="text-blue-900 dark:text-blue-100">{{ $categoriesWithTranslation->count() }}</div>
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
+                                        </svg>
                                     </div>
-                                    
-                                    <div class="text-gray-400 dark:text-gray-500">|</div>
-                                    
-                                    <div class="flex flex-col items-center">
-                                        <div class="text-lg font-medium text-green-600 dark:text-green-400 mb-2">已分类域名</div>
-                                        <div class="text-green-900 dark:text-green-100">{{ number_format($categoriesWithTranslation->sum('count')) }}</div>
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-blue-600 dark:text-blue-400">分类总数</div>
+                                    <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">{{ $categoriesWithTranslation->count() }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 p-6 rounded-lg border border-green-200 dark:border-green-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
                                     </div>
-                                    
-                                    <div class="text-gray-400 dark:text-gray-500">|</div>
-                                    
-                                    <div class="flex flex-col items-center">
-                                        <div class="text-lg font-medium text-purple-600 dark:text-purple-400 mb-2">平均每分类</div>
-                                        <div class="text-purple-900 dark:text-purple-100">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</div>
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-green-600 dark:text-green-400">已分类域名</div>
+                                    <div class="text-2xl font-bold text-green-900 dark:text-green-100">{{ number_format($categoriesWithTranslation->sum('count')) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 p-6 rounded-lg border border-purple-200 dark:border-purple-700">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
                                     </div>
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium text-purple-600 dark:text-purple-400">平均每分类</div>
+                                    <div class="text-2xl font-bold text-purple-900 dark:text-purple-100">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -92,10 +106,9 @@
                                         {{ $index + 1 }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" 
-                                            class="font-mono text-sm bg-gray-100 dark:bg-gray-600 px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">
+                                        <span class="font-mono text-xs bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">
                                             {{ $categoryData->category }}
-                                        </a>
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         <a href="{{ route('domains.category.domains', ['category' => $categoryData->url_category]) }}" 
