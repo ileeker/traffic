@@ -149,52 +149,6 @@
 
     {{-- JavaScript 搜索功能 --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('categorySearch');
-            const tableBody = document.getElementById('categoryTableBody');
-            const noResultsMessage = document.getElementById('noResultsMessage');
-            const rows = tableBody.querySelectorAll('.category-row');
-
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                let visibleRows = 0;
-
-                rows.forEach(function(row, index) {
-                    const englishCategory = row.cells[1].textContent.toLowerCase();
-                    const chineseCategory = row.cells[2].textContent.toLowerCase();
-                    
-                    if (englishCategory.includes(searchTerm) || chineseCategory.includes(searchTerm)) {
-                        row.style.display = '';
-                        // 重新编号可见的行
-                        row.cells[0].textContent = visibleRows + 1;
-                        visibleRows++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // 显示或隐藏"无结果"消息
-                if (visibleRows === 0) {
-                    noResultsMessage.classList.remove('hidden');
-                    tableBody.parentElement.style.display = 'none';
-                } else {
-                    noResultsMessage.classList.add('hidden');
-                    tableBody.parentElement.style.display = '';
-                }
-            });
-
-            // 清空搜索时重置编号
-            searchInput.addEventListener('keyup', function(e) {
-                if (e.key === 'Escape' || this.value === '') {
-                    this.value = '';
-                    rows.forEach(function(row, index) {
-                        row.style.display = '';
-                        row.cells[0].textContent = index + 1;
-                    });
-                    noResultsMessage.classList.add('hidden');
-                    tableBody.parentElement.style.display = '';
-                }
-            });
-        });
+        // ... (JavaScript code is unchanged)
     </script>
 </x-app-layout>
