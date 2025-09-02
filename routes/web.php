@@ -31,7 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // 详细页面路由
-    Route::get('/domain/{domain}', [DomainController::class, 'getDomainDetail'])->name('domain.detail');
+    Route::get('/domain/{domain}', [DomainController::class, 'getDomainDetail'])->name('domain.ranking');
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
     
     // 域名数据浏览路由
