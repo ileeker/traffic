@@ -455,7 +455,7 @@ class DomainController extends Controller
      */
     private function categoryToUrl($category)
     {
-        return str_replace('/', '-', $category);
+        return str_replace('/', '--', $category);
     }
 
     /**
@@ -519,7 +519,7 @@ class DomainController extends Controller
     public function showCategoryDomains(Request $request, string $category)
     {
         try {
-            // URL解码并将 "-" 转换回 "/"
+            // URL解码并将 "--" 转换回 "/"
             $decodedCategory = urldecode($category);
             $originalCategory = $this->urlToCategory($decodedCategory);
             
