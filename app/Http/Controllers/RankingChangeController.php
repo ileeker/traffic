@@ -16,7 +16,7 @@ class RankingChangeController extends Controller
      */
     public function index(Request $request)
     {
-        $today = now()->subMonth()->format('Y-m-d');
+        $today = now()->format('Y-m-d');
 
         return $today;
 
