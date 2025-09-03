@@ -263,25 +263,9 @@
                 </div>
             </div>
 
-            {{-- Top 分类图表 --}}
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Top 10 分类分布</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <canvas id="categoryPieChart"></canvas>
-                        </div>
-                        <div>
-                            <canvas id="categoryBarChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('categorySearch');
@@ -386,90 +370,6 @@
                     });
                     updateRowNumbers();
                     sortSelect.value = 'count-desc';
-                }
-            });
-
-            // 初始化图表
-            const topCategories = @json($categoriesWithTranslation->take(10));
-            
-            // 饼图
-            const pieCtx = document.getElementById('categoryPieChart').getContext('2d');
-            new Chart(pieCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: topCategories.map(c => c.chinese_name),
-                    datasets: [{
-                        data: topCategories.map(c => c.count),
-                        backgroundColor: [
-                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                            '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 15,
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                    return context.label + ': ' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 柱形图
-            const barCtx = document.getElementById('categoryBarChart').getContext('2d');
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: topCategories.map(c => c.chinese_name),
-                    datasets: [{
-                        label: '域名数量',
-                        data: topCategories.map(c => c.count),
-                        backgroundColor: '#3B82F6',
-                        borderColor: '#2563EB',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toLocaleString();
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    }
                 }
             });
         });
