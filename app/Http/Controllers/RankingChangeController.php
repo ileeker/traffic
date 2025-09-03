@@ -18,7 +18,7 @@ class RankingChangeController extends Controller
     {
         $today = now()->format('Y-m-d');
 
-        return $today;
+        // return $today;
 
         try {
             // 获取查询参数
