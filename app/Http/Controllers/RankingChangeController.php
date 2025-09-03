@@ -16,6 +16,8 @@ class RankingChangeController extends Controller
      */
     public function index(Request $request)
     {
+        $today = now()->subMonth()->format('Y-m-d');
+
         try {
             // 获取查询参数
             $sortBy = $request->get('sort', 'current_ranking');
@@ -46,7 +48,7 @@ class RankingChangeController extends Controller
             }
 
             // 构建查询 - 只查询今天的数据，并预加载 websiteIntroduction 关联
-            $query = RankingChange::whereDate('record_date', today())
+            $query = RankingChange::whereDate('record_date', $today)
                 ->with('websiteIntroduction')  // 添加预加载关联
                 ->select([
                     'ranking_changes.id',
@@ -131,7 +133,7 @@ class RankingChangeController extends Controller
             $rankingChanges = $query->paginate(100)->withQueryString();
             
             // 获取统计信息
-            $todayCount = RankingChange::whereDate('record_date', today())->count();
+            $todayCount = RankingChange::whereDate('record_date', $today)->count();
             
             // 计算过滤后的记录数
             $filteredCount = $todayCount;
@@ -150,7 +152,7 @@ class RankingChangeController extends Controller
                 if (in_array($filterField, $filterFields)) {
                     $filterValue = (int)$filterValue;
                     
-                    $countQuery = RankingChange::whereDate('record_date', today());
+                    $countQuery = RankingChange::whereDate('record_date', $today);
                     if ($filterField === 'current_ranking') {
                         $countQuery->where($filterField, '<=', $filterValue);
                     } else {
@@ -175,48 +177,6 @@ class RankingChangeController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', '数据加载失败：' . $e->getMessage());
-        }
-    }
-
-    /**
-     * 获取排名变化统计信息 - 优化版本
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getStats(Request $request)
-    {
-        try {
-            $date = $request->get('date', today());
-            
-            // 基础统计（不包含ABS计算）
-            $baseStats = DB::table('ranking_changes')
-                ->where('record_date', $date)
-                ->select([
-                    DB::raw('COUNT(*) as total_domains'),
-                    DB::raw('COUNT(CASE WHEN daily_trend = "up" THEN 1 END) as daily_up'),
-                    DB::raw('COUNT(CASE WHEN daily_trend = "down" THEN 1 END) as daily_down'),
-                    DB::raw('COUNT(CASE WHEN daily_trend = "stable" THEN 1 END) as daily_stable'),
-                    DB::raw('COUNT(CASE WHEN week_trend = "up" THEN 1 END) as week_up'),
-                    DB::raw('COUNT(CASE WHEN week_trend = "down" THEN 1 END) as week_down'),
-                    DB::raw('COUNT(CASE WHEN week_trend = "stable" THEN 1 END) as week_stable'),
-                    DB::raw('AVG(current_ranking) as avg_ranking')
-                ])
-                ->first();
-            
-            // 分别获取最大正值和最小负值
-            $maxChanges = $this->getMaxChanges($date);
-            
-            // 合并结果
-            $stats = (object) array_merge(
-                (array) $baseStats,
-                $maxChanges
-            );
-
-            return response()->json($stats);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => '统计信息获取失败'], 500);
         }
     }
     
