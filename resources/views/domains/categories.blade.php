@@ -18,52 +18,33 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
-            {{-- 统计卡片 --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {{-- 分类总数卡片 --}}
-                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-blue-100 text-sm font-medium">分类总数</p>
-                            <p class="text-3xl font-bold mt-2">{{ $categoriesWithTranslation->count() }}</p>
-                            <p class="text-blue-100 text-xs mt-2">覆盖所有域名类型</p>
+            {{-- 统计信息 (水平单行显示) --}}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-4">
+                    <div class="flex justify-around items-center">
+                        {{-- 分类总数 --}}
+                        <div class="text-center">
+                            <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">分类总数</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ $categoriesWithTranslation->count() }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">覆盖所有域名类型</p>
                         </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14-7H5m14 14H5"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
 
-                {{-- 已分类域名卡片 --}}
-                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-green-100 text-sm font-medium">已分类域名</p>
-                            <p class="text-3xl font-bold mt-2">{{ number_format($categoriesWithTranslation->sum('count')) }}</p>
-                            <p class="text-green-100 text-xs mt-2">{{ number_format(($categoriesWithTranslation->sum('count') / $totalDomains) * 100, 1) }}% 覆盖率</p>
-                        </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+                        <div class="h-12 w-px bg-gray-200 dark:bg-gray-700"></div>
 
-                {{-- 平均每分类卡片 --}}
-                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-purple-100 text-sm font-medium">平均每分类</p>
-                            <p class="text-3xl font-bold mt-2">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</p>
-                            <p class="text-purple-100 text-xs mt-2">域名数量</p>
+                        {{-- 已分类域名 --}}
+                        <div class="text-center">
+                            <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">已分类域名</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($categoriesWithTranslation->sum('count')) }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ number_format(($categoriesWithTranslation->sum('count') / $totalDomains) * 100, 1) }}% 覆盖率</p>
                         </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-3">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
+
+                        <div class="h-12 w-px bg-gray-200 dark:bg-gray-700"></div>
+
+                        {{-- 平均每分类 --}}
+                        <div class="text-center">
+                            <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">平均每分类</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ number_format($categoriesWithTranslation->avg('count'), 0) }}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">域名数量</p>
                         </div>
                     </div>
                 </div>
