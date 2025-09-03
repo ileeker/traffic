@@ -18,8 +18,6 @@ class RankingChangeController extends Controller
     {
         $today = now()->format('Y-m-d');
 
-        return $today;
-
         try {
             // 获取查询参数
             $sortBy = $request->get('sort', 'current_ranking');
