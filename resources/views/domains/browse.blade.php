@@ -206,6 +206,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         邮件
                                     </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        注册日期
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -262,6 +265,16 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
                                         {{ number_format($domain->ts_mail * 100, 1) }}%
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                                        @if($domain->websiteIntroduction && $domain->websiteIntroduction->registered_at)
+                                            {{ $domain->websiteIntroduction->registered_at->format('Y-m-d') }}
+                                            <span class="text-xs text-gray-500 block">
+                                                ({{ $domain->websiteIntroduction->registered_at->diffForHumans() }})
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty

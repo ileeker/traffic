@@ -177,6 +177,7 @@ class DomainController extends Controller
 
             // 构建查询
             $query = SimilarwebDomain::where('current_month', $lastMonth)
+                ->with(['websiteIntroduction:domain,registered_at']) // 预加载网站介绍信息，只选择需要的字段
                 ->select([
                     'domain',
                     'current_emv',
