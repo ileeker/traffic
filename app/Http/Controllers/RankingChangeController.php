@@ -48,29 +48,11 @@ class RankingChangeController extends Controller
                 $sortOrder = 'asc';
             }
 
-            // 优化1: 使用原生查询构建器，避免 Eloquent 开销
-            $query = DB::table('ranking_changes')
+            // 使用 Eloquent 查询构建器，保持模型关系
+            $query = RankingChange::with('websiteIntroduction')
                 ->whereDate('record_date', $today);
 
-            // 优化2: 只在需要时加载 website_introductions
-            $needsIntroduction = ($sortBy === 'registered_at' || 
-                                 $request->has('show_registration') ||
-                                 $request->has('with_details'));
-            
-            if ($needsIntroduction) {
-                $query->leftJoin('website_introductions', 
-                    'ranking_changes.domain', '=', 'website_introductions.domain')
-                    ->select(
-                        'ranking_changes.*',
-                        'website_introductions.registered_at',
-                        'website_introductions.title',
-                        'website_introductions.description'
-                    );
-            } else {
-                $query->select('ranking_changes.*');
-            }
-
-            // 优化3: 改进筛选逻辑，使用 UNION 代替 OR 以更好地利用索引
+            // 筛选逻辑
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 $filterFields = [
                     'current_ranking',
@@ -87,142 +69,62 @@ class RankingChangeController extends Controller
                     
                     if ($filterField === 'current_ranking') {
                         // 使用索引友好的方式
-                        $query->where('ranking_changes.current_ranking', '<=', $filterValue);
+                        $query->where('current_ranking', '<=', $filterValue);
                     } else {
-                        // 优化4: 分别处理正负值，避免使用 ABS 函数
+                        // 分别处理正负值，避免使用 ABS 函数
                         if ($filterValue > 0) {
-                            // 使用 BETWEEN 代替 OR，更索引友好
-                            $query->whereBetween("ranking_changes.$filterField", 
-                                [-999999, -$filterValue])
-                                ->orWhereBetween("ranking_changes.$filterField", 
-                                    [$filterValue, 999999]);
+                            $query->where(function($q) use ($filterField, $filterValue) {
+                                $q->whereBetween($filterField, [-999999, -$filterValue])
+                                  ->orWhereBetween($filterField, [$filterValue, 999999]);
+                            });
                         }
                     }
                 }
             }
 
-            // 优化5: 改进排序逻辑
+            // 排序逻辑
             if ($sortBy === 'domain') {
-                $query->orderBy('ranking_changes.domain', $sortOrder);
+                $query->orderBy('domain', $sortOrder);
             } else if ($sortBy === 'current_ranking') {
                 // 直接使用索引
-                $query->orderBy('ranking_changes.current_ranking', $sortOrder);
+                $query->orderBy('current_ranking', $sortOrder);
             } else if ($sortBy === 'registered_at') {
-                // 优化6: 使用 COALESCE 代替 IS NULL 检查
+                // 关联排序 - 需要 join
+                $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
+                    ->select('ranking_changes.*');
+                
+                // 使用 COALESCE 处理 NULL 值
                 $nullValue = $sortOrder === 'asc' ? '9999-12-31' : '1000-01-01';
                 $query->orderByRaw(
                     "COALESCE(website_introductions.registered_at, ?) $sortOrder",
                     [$nullValue]
                 );
             } else {
-                // 优化7: 变化字段排序优化
-                $field = "ranking_changes.$sortBy";
+                // 变化字段排序优化
                 if ($sortOrder === 'desc') {
                     // 上升最多的优先（负数）
-                    $query->orderByRaw("CASE WHEN $field < 0 THEN 0 ELSE 1 END, $field ASC");
+                    $query->orderByRaw("CASE WHEN $sortBy < 0 THEN 0 ELSE 1 END, $sortBy ASC");
                 } else {
                     // 下降最多的优先（正数）
-                    $query->orderByRaw("CASE WHEN $field > 0 THEN 0 ELSE 1 END, $field DESC");
+                    $query->orderByRaw("CASE WHEN $sortBy > 0 THEN 0 ELSE 1 END, $sortBy DESC");
                 }
             }
 
-            // 优化8: 使用 LIMIT 和 OFFSET 代替分页器的子查询
-            $page = $request->get('page', 1);
+            // 分页
             $perPage = 100;
-            $offset = ($page - 1) * $perPage;
+            $rankingChanges = $query->paginate($perPage);
             
-            // 获取数据
-            $results = $query->limit($perPage)
-                ->offset($offset)
-                ->get();
-
-            // 优化9: 缓存计数查询
-            $cacheKey = "ranking_count_{$today}";
-            $todayCount = Cache::remember($cacheKey, 300, function() use ($today) {
-                return DB::table('ranking_changes')
-                    ->whereDate('record_date', $today)
-                    ->count();
-            });
-
-            // 计算过滤后的记录数（如果有筛选）
-            $filteredCount = $todayCount;
-            if ($filterField && $filterValue !== null && $filterValue !== '') {
-                // 复用上面的查询条件
-                $countQuery = DB::table('ranking_changes')
-                    ->whereDate('record_date', $today);
-                
-                $filterFields = [
-                    'current_ranking',
-                    'daily_change',
-                    'week_change',
-                    'biweek_change',
-                    'triweek_change',
-                    'month_change',
-                    'quarter_change'
-                ];
-                
-                if (in_array($filterField, $filterFields)) {
-                    $filterValue = (int)$filterValue;
-                    
-                    if ($filterField === 'current_ranking') {
-                        $countQuery->where('current_ranking', '<=', $filterValue);
-                    } else {
-                        if ($filterValue > 0) {
-                            $countQuery->whereBetween($filterField, [-999999, -$filterValue])
-                                ->orWhereBetween($filterField, [$filterValue, 999999]);
-                        }
-                    }
-                }
-                
-                $filteredCount = $countQuery->count();
-            }
-
-            // 手动创建分页对象
-            $rankingChanges = new \Illuminate\Pagination\LengthAwarePaginator(
-                $results,
-                $filteredCount,
-                $perPage,
-                $page,
-                ['path' => $request->url()]
-            );
-            
+            // 保持查询字符串
             $rankingChanges->withQueryString();
 
-            // 将数据转换为具有正确属性的对象
-            // 这是修复的关键部分 - 确保属性名称一致
-            foreach ($results as $result) {
-                // 如果已经 join 了 website_introductions 表
-                if ($needsIntroduction) {
-                    // 创建一个 websiteIntroduction 对象包含相关信息
-                    $result->websiteIntroduction = (object) [
-                        'domain' => $result->domain,
-                        'registered_at' => $result->registered_at ?? null,
-                        'title' => $result->title ?? null,
-                        'description' => $result->description ?? null
-                    ];
-                } else {
-                    // 如果没有 join，设置为 null 或空对象
-                    $result->websiteIntroduction = null;
-                }
-            }
+            // 缓存今日记录总数
+            $cacheKey = "ranking_count_{$today}";
+            $todayCount = Cache::remember($cacheKey, 300, function() use ($today) {
+                return RankingChange::whereDate('record_date', $today)->count();
+            });
 
-            // 优化10: 如果需要额外的详情，批量加载
-            if (!$needsIntroduction && $request->has('load_introductions')) {
-                $domains = $results->pluck('domain')->toArray();
-                $introductions = DB::table('website_introductions')
-                    ->whereIn('domain', $domains)
-                    ->get()
-                    ->keyBy('domain');
-                
-                foreach ($results as $result) {
-                    $intro = $introductions->get($result->domain);
-                    if ($intro) {
-                        $result->websiteIntroduction = $intro;
-                    } else {
-                        $result->websiteIntroduction = null;
-                    }
-                }
-            }
+            // 计算过滤后的记录数
+            $filteredCount = $rankingChanges->total();
 
             return view('ranking-changes.index', compact(
                 'rankingChanges',
@@ -288,7 +190,7 @@ class RankingChangeController extends Controller
     }
     
     /**
-     * 优化后的获取域名历史方法
+     * 获取域名历史方法
      */
     public function getDomainHistory(Request $request, string $domain)
     {
@@ -297,8 +199,7 @@ class RankingChangeController extends Controller
             $cacheKey = "domain_history_{$domain}";
             
             $history = Cache::remember($cacheKey, 600, function() use ($domain) {
-                return DB::table('ranking_changes')
-                    ->where('domain', $domain)
+                return RankingChange::where('domain', $domain)
                     ->orderBy('record_date', 'desc')
                     ->limit(30)
                     ->get([
@@ -314,9 +215,7 @@ class RankingChangeController extends Controller
             });
 
             // 获取网站介绍信息
-            $introduction = DB::table('website_introductions')
-                ->where('domain', $domain)
-                ->first();
+            $introduction = \App\Models\WebsiteIntroduction::where('domain', $domain)->first();
 
             return response()->json([
                 'domain' => $domain,
