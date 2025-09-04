@@ -11,6 +11,15 @@
         }
         return number_format($num, 2);
     }
+    
+    // 格式化增长率
+    function formatGrowthRate($rate) {
+        if ($rate === null) {
+            return '-';
+        }
+        $sign = $rate >= 0 ? '+' : '';
+        return $sign . number_format($rate, 2) . '%';
+    }
     @endphp
     
     <x-slot name="header">
@@ -46,18 +55,18 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <button id="testAllDomains" 
-                                    class="px-4 py-2 bg-green-600 text-black rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 测试所有域名
                             </button>
                             <button id="stopTest" 
-                                    class="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
                                 停止测试
                             </button>
                             <button id="clearResults" 
-                                    class="px-4 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
                                 清除结果
                             </button>
                         </div>
@@ -156,16 +165,27 @@
                                 <select id="filterField" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                                     <option value="">无过滤</option>
-                                    <option value="current_emv" {{ $filterField == 'current_emv' ? 'selected' : '' }}>EMV ≥</option>
-                                    <option value="month_emv_change" {{ $filterField == 'month_emv_change' ? 'selected' : '' }}>月变化 ≥</option>
-                                    <option value="quarter_emv_change" {{ $filterField == 'quarter_emv_change' ? 'selected' : '' }}>季度变化 ≥</option>
-                                    <option value="halfyear_emv_change" {{ $filterField == 'halfyear_emv_change' ? 'selected' : '' }}>半年变化 ≥</option>
-                                    <option value="year_emv_change" {{ $filterField == 'year_emv_change' ? 'selected' : '' }}>年变化 ≥</option>
+                                    <optgroup label="EMV值">
+                                        <option value="current_emv" {{ $filterField == 'current_emv' ? 'selected' : '' }}>EMV ≥</option>
+                                    </optgroup>
+                                    <optgroup label="变化值">
+                                        <option value="month_emv_change" {{ $filterField == 'month_emv_change' ? 'selected' : '' }}>月变化 ≥</option>
+                                        <option value="quarter_emv_change" {{ $filterField == 'quarter_emv_change' ? 'selected' : '' }}>季度变化 ≥</option>
+                                        <option value="halfyear_emv_change" {{ $filterField == 'halfyear_emv_change' ? 'selected' : '' }}>半年变化 ≥</option>
+                                        <option value="year_emv_change" {{ $filterField == 'year_emv_change' ? 'selected' : '' }}>年变化 ≥</option>
+                                    </optgroup>
+                                    <optgroup label="增长率">
+                                        <option value="month_emv_growth_rate" {{ $filterField == 'month_emv_growth_rate' ? 'selected' : '' }}>月增长率 ≥ (%)</option>
+                                        <option value="quarter_emv_growth_rate" {{ $filterField == 'quarter_emv_growth_rate' ? 'selected' : '' }}>季度增长率 ≥ (%)</option>
+                                        <option value="halfyear_emv_growth_rate" {{ $filterField == 'halfyear_emv_growth_rate' ? 'selected' : '' }}>半年增长率 ≥ (%)</option>
+                                        <option value="year_emv_growth_rate" {{ $filterField == 'year_emv_growth_rate' ? 'selected' : '' }}>年增长率 ≥ (%)</option>
+                                    </optgroup>
                                 </select>
                                 <input type="number" 
                                        id="filterValue"
                                        placeholder="数值"
                                        value="{{ $filterValue }}"
+                                       step="any"
                                        class="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                                 <button id="applyFilter" 
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
@@ -184,18 +204,32 @@
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                                    <option value="current_emv-desc" {{ $sortBy == 'current_emv' && $sortOrder == 'desc' ? 'selected' : '' }}>EMV (高→低)</option>
-                                    <option value="current_emv-asc" {{ $sortBy == 'current_emv' && $sortOrder == 'asc' ? 'selected' : '' }}>EMV (低→高)</option>
-                                    <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
-                                    <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
-                                    <option value="month_emv_change-desc" {{ $sortBy == 'month_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月增长最多</option>
-                                    <option value="month_emv_change-asc" {{ $sortBy == 'month_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
-                                    <option value="quarter_emv_change-desc" {{ $sortBy == 'quarter_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度增长最多</option>
-                                    <option value="quarter_emv_change-asc" {{ $sortBy == 'quarter_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
-                                    <option value="halfyear_emv_change-desc" {{ $sortBy == 'halfyear_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>半年增长最多</option>
-                                    <option value="halfyear_emv_change-asc" {{ $sortBy == 'halfyear_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>半年下降最多</option>
-                                    <option value="year_emv_change-desc" {{ $sortBy == 'year_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年增长最多</option>
-                                    <option value="year_emv_change-asc" {{ $sortBy == 'year_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option>
+                                    <optgroup label="基础排序">
+                                        <option value="current_emv-desc" {{ $sortBy == 'current_emv' && $sortOrder == 'desc' ? 'selected' : '' }}>EMV (高→低)</option>
+                                        <option value="current_emv-asc" {{ $sortBy == 'current_emv' && $sortOrder == 'asc' ? 'selected' : '' }}>EMV (低→高)</option>
+                                        <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
+                                        <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
+                                    </optgroup>
+                                    <optgroup label="变化值排序">
+                                        <option value="month_emv_change-desc" {{ $sortBy == 'month_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月增长最多</option>
+                                        <option value="month_emv_change-asc" {{ $sortBy == 'month_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
+                                        <option value="quarter_emv_change-desc" {{ $sortBy == 'quarter_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度增长最多</option>
+                                        <option value="quarter_emv_change-asc" {{ $sortBy == 'quarter_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
+                                        <option value="halfyear_emv_change-desc" {{ $sortBy == 'halfyear_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>半年增长最多</option>
+                                        <option value="halfyear_emv_change-asc" {{ $sortBy == 'halfyear_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>半年下降最多</option>
+                                        <option value="year_emv_change-desc" {{ $sortBy == 'year_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年增长最多</option>
+                                        <option value="year_emv_change-asc" {{ $sortBy == 'year_emv_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option>
+                                    </optgroup>
+                                    <optgroup label="增长率排序">
+                                        <option value="month_emv_growth_rate-desc" {{ $sortBy == 'month_emv_growth_rate' && $sortOrder == 'desc' ? 'selected' : '' }}>月增长率最高</option>
+                                        <option value="month_emv_growth_rate-asc" {{ $sortBy == 'month_emv_growth_rate' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降率最高</option>
+                                        <option value="quarter_emv_growth_rate-desc" {{ $sortBy == 'quarter_emv_growth_rate' && $sortOrder == 'desc' ? 'selected' : '' }}>季度增长率最高</option>
+                                        <option value="quarter_emv_growth_rate-asc" {{ $sortBy == 'quarter_emv_growth_rate' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降率最高</option>
+                                        <option value="halfyear_emv_growth_rate-desc" {{ $sortBy == 'halfyear_emv_growth_rate' && $sortOrder == 'desc' ? 'selected' : '' }}>半年增长率最高</option>
+                                        <option value="halfyear_emv_growth_rate-asc" {{ $sortBy == 'halfyear_emv_growth_rate' && $sortOrder == 'asc' ? 'selected' : '' }}>半年下降率最高</option>
+                                        <option value="year_emv_growth_rate-desc" {{ $sortBy == 'year_emv_growth_rate' && $sortOrder == 'desc' ? 'selected' : '' }}>年增长率最高</option>
+                                        <option value="year_emv_growth_rate-asc" {{ $sortBy == 'year_emv_growth_rate' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降率最高</option>
+                                    </optgroup>
                                 </select>
                             </div>
                         </div>
@@ -237,18 +271,16 @@
                                         <div class="flex items-center">
                                             <img src="https://www.google.com/s2/favicons?domain={{ $change->domain }}" 
                                                  alt="{{ $change->domain }}" 
-                                                 class="w-4 h-4 mr-3 rounded-sm"
-                                                 style="margin-right:2px"
+                                                 class="w-4 h-4 mr-2 rounded-sm"
                                                  onerror="this.style.display='none'">
                                             <a href="{{ route('domain.ranking', ['domain' => $change->domain]) }}" 
                                                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                                                 {{ $change->domain }}
                                             </a>
-                                            <a href="https://{{ $change->domain }}" target="_blank" title="访问 {{ $change->domain }}">
-                                                <!-- 纯文本符号 -->
-                                                <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
+                                            <a href="https://{{ $change->domain }}" target="_blank" title="访问 {{ $change->domain }}" class="ml-1">
+                                                <span class="text-green-500 text-sm">🌐</span>
                                             </a>
-                                            <!-- 新增：访问状态指示器 -->
+                                            <!-- 访问状态指示器 -->
                                             <span class="domain-test-status ml-2" data-domain="{{ $change->domain }}"></span>
                                         </div>
                                     </td>
@@ -259,7 +291,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($change->month_emv_change !== null)
-                                            <div class="flex items-center">
+                                            <div class="flex flex-col">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                                     @if($change->month_emv_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
                                                     @elseif($change->month_emv_trend === 'down') bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
@@ -274,6 +306,11 @@
                                                     @endif
                                                     {{ formatNumber(abs($change->month_emv_change)) }}
                                                 </span>
+                                                @if($change->month_emv_growth_rate !== null)
+                                                    <span class="text-xs mt-1 {{ $change->month_emv_growth_rate > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                        {{ formatGrowthRate($change->month_emv_growth_rate) }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
@@ -281,7 +318,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($change->quarter_emv_change !== null)
-                                            <div class="flex items-center">
+                                            <div class="flex flex-col">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                                     @if($change->quarter_emv_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
                                                     @elseif($change->quarter_emv_trend === 'down') bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
@@ -296,6 +333,11 @@
                                                     @endif
                                                     {{ formatNumber(abs($change->quarter_emv_change)) }}
                                                 </span>
+                                                @if($change->quarter_emv_growth_rate !== null)
+                                                    <span class="text-xs mt-1 {{ $change->quarter_emv_growth_rate > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                        {{ formatGrowthRate($change->quarter_emv_growth_rate) }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
@@ -303,7 +345,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($change->halfyear_emv_change !== null)
-                                            <div class="flex items-center">
+                                            <div class="flex flex-col">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                                     @if($change->halfyear_emv_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
                                                     @elseif($change->halfyear_emv_trend === 'down') bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
@@ -318,6 +360,11 @@
                                                     @endif
                                                     {{ formatNumber(abs($change->halfyear_emv_change)) }}
                                                 </span>
+                                                @if($change->halfyear_emv_growth_rate !== null)
+                                                    <span class="text-xs mt-1 {{ $change->halfyear_emv_growth_rate > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                        {{ formatGrowthRate($change->halfyear_emv_growth_rate) }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
@@ -325,7 +372,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($change->year_emv_change !== null)
-                                            <div class="flex items-center">
+                                            <div class="flex flex-col">
                                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                                     @if($change->year_emv_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
                                                     @elseif($change->year_emv_trend === 'down') bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100
@@ -340,6 +387,11 @@
                                                     @endif
                                                     {{ formatNumber(abs($change->year_emv_change)) }}
                                                 </span>
+                                                @if($change->year_emv_growth_rate !== null)
+                                                    <span class="text-xs mt-1 {{ $change->year_emv_growth_rate > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                                        {{ formatGrowthRate($change->year_emv_growth_rate) }}
+                                                    </span>
+                                                @endif
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
@@ -459,14 +511,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (this.value === 'current_emv') {
             filterValue.placeholder = 'EMV值';
+            filterValue.step = '1';
+        } else if (this.value.includes('growth_rate')) {
+            filterValue.placeholder = '百分比';
+            filterValue.step = '0.01';
         } else if (this.value) {
             filterValue.placeholder = '变化值';
+            filterValue.step = '1';
         } else {
             filterValue.placeholder = '数值';
+            filterValue.step = 'any';
         }
     });
 
-    // ============ 新增：域名访问测试功能 ============
+    // ============ 域名访问测试功能 ============
     let isTestRunning = false;
     let shouldStopTest = false;
     
@@ -547,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status.success) {
             element.innerHTML = `
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                    ✓ ${status.protocol ? status.protocol.replace('://', '') : ''}
+                    ✔ ${status.protocol ? status.protocol.replace('://', '') : ''}
                 </span>
             `;
         } else if (status.method === 'timeout') {
