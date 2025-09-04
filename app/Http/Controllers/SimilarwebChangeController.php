@@ -50,8 +50,9 @@ class SimilarwebChangeController extends Controller
                 $sortOrder = 'desc';
             }
 
-            // 构建查询 - 查询指定月份的数据，包含增长率字段
+            // 构建查询 - 查询指定月份的数据，包含增长率字段和网站介绍信息
             $query = SimilarwebChange::where('record_month', $recordMonth)
+                ->with(['websiteIntroduction:domain,registered_at']) // 预加载网站介绍信息，只选择需要的字段
                 ->select([
                     'id',
                     'domain',
