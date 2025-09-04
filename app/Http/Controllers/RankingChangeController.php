@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\RankingChange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 
 class RankingChangeController extends Controller
 {
@@ -18,6 +17,8 @@ class RankingChangeController extends Controller
     public function index(Request $request)
     {
         $today = now()->format('Y-m-d');
+
+        // return $today;
 
         try {
             // 获取查询参数
@@ -36,7 +37,7 @@ class RankingChangeController extends Controller
                 'triweek_change',
                 'month_change',
                 'quarter_change',
-                'registered_at'
+                'registered_at'  // 添加注册时间排序
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -48,9 +49,9 @@ class RankingChangeController extends Controller
                 $sortOrder = 'asc';
             }
 
-            // 使用原生查询构建器以获得更好的性能
-            $query = DB::table('ranking_changes')
-                ->whereDate('record_date', $today)
+            // 构建查询 - 只查询今天的数据，并预加载 websiteIntroduction 关联
+            $query = RankingChange::whereDate('record_date', $today)
+                ->with('websiteIntroduction')  // 添加预加载关联
                 ->select([
                     'ranking_changes.id',
                     'ranking_changes.domain',
@@ -68,18 +69,16 @@ class RankingChangeController extends Controller
                     'ranking_changes.quarter_change',
                     'ranking_changes.quarter_trend',
                     'ranking_changes.year_change',
-                    'ranking_changes.year_trend',
-                    'ranking_changes.record_date' // 添加 record_date 以便使用索引
+                    'ranking_changes.year_trend'
                 ]);
 
-            // 优化：如果需要注册时间，一次性 JOIN
-            if ($sortBy === 'registered_at' || $request->has('show_registered_at')) {
+            // 如果需要按注册时间排序，添加 left join
+            if ($sortBy === 'registered_at') {
                 $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
-                      ->addSelect('website_introductions.registered_at', 
-                                  'website_introductions.description as website_description');
+                      ->addSelect('website_introductions.registered_at');
             }
 
-            // 优化后的筛选逻辑
+            // 应用数值筛选 - 优化版本，避免使用 ABS()
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 $filterFields = [
                     'current_ranking',
@@ -89,105 +88,84 @@ class RankingChangeController extends Controller
                     'triweek_change',
                     'month_change',
                     'quarter_change'
+                    // 移除 year_change
                 ];
                 
                 if (in_array($filterField, $filterFields)) {
                     $filterValue = (int)$filterValue;
                     
                     if ($filterField === 'current_ranking') {
-                        // 使用索引 idx_date_ranking
-                        $query->where('ranking_changes.current_ranking', '<=', $filterValue);
+                        // 排名筛选：小于等于
+                        $query->where($filterField, '<=', $filterValue);
                     } else {
-                        // 优化：使用 UNION 代替 OR 来提高性能
-                        $positiveQuery = clone $query;
-                        $negativeQuery = clone $query;
-                        
-                        $positiveQuery->where("ranking_changes.{$filterField}", '>=', $filterValue);
-                        $negativeQuery->where("ranking_changes.{$filterField}", '<=', -$filterValue);
-                        
-                        $query = $positiveQuery->union($negativeQuery);
+                        // 变化值筛选：优化版本
+                        // 将 ABS(field) >= value 改为 (field >= value OR field <= -value)
+                        $query->where(function($q) use ($filterField, $filterValue) {
+                            $q->where($filterField, '>=', $filterValue)
+                              ->orWhere($filterField, '<=', -$filterValue);
+                        });
                     }
                 }
             }
 
-            // 优化后的排序逻辑
-            if ($sortBy === 'domain') {
-                $query->orderBy('ranking_changes.domain', $sortOrder);
-            } elseif ($sortBy === 'current_ranking') {
-                // 利用 idx_date_ranking 索引
-                $query->orderBy('ranking_changes.current_ranking', $sortOrder);
-            } elseif ($sortBy === 'registered_at') {
-                // 优化：避免使用 ORDER BY RAW
-                if ($sortOrder === 'asc') {
-                    $query->orderBy('website_introductions.registered_at', 'asc');
-                } else {
-                    $query->orderBy('website_introductions.registered_at', 'desc');
+            // 应用排序 - 简化版本
+            if ($sortBy === 'domain' || $sortBy === 'current_ranking') {
+                // 直接字段排序
+                $query->orderBy($sortBy, $sortOrder);
+            } else if ($sortBy === 'registered_at') {
+                // 注册时间排序
+                // 需要先确保已经 join 了 website_introductions 表
+                if (!$query->getQuery()->joins) {
+                    $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain');
                 }
+                // NULL 值放在最后
+                $query->orderByRaw("website_introductions.registered_at IS NULL, website_introductions.registered_at $sortOrder");
             } else {
-                // 变化字段排序优化
-                $query->orderBy("ranking_changes.{$sortBy}", 
-                    $sortOrder === 'desc' ? 'asc' : 'desc');
+                // 变化字段排序：负数表示上升，正数表示下降
+                if ($sortOrder === 'desc') {
+                    // 降序：上升最多的优先（最大的负数）
+                    $query->orderByRaw("$sortBy IS NULL, $sortBy ASC");
+                } else {
+                    // 升序：下降最多的优先（最大的正数）
+                    $query->orderByRaw("$sortBy IS NULL, $sortBy DESC");
+                }
             }
 
-            // 添加二级排序以确保结果稳定
-            if ($sortBy !== 'domain') {
-                $query->orderBy('ranking_changes.domain', 'asc');
-            }
-
-            // 使用分页
-            $perPage = $request->get('per_page', 100);
-            $page = $request->get('page', 1);
+            // 分页查询
+            $rankingChanges = $query->paginate(100)->withQueryString();
             
-            // 优化：使用缓存计算总数
-            $cacheKey = "ranking_count_{$today}_{$filterField}_{$filterValue}";
-            $total = Cache::remember($cacheKey, 300, function() use ($query) {
-                return $query->count();
-            });
-
-            // 计算偏移量
-            $offset = ($page - 1) * $perPage;
+            // 获取统计信息
+            $todayCount = RankingChange::whereDate('record_date', $today)->count();
             
-            // 获取数据
-            $items = $query->offset($offset)
-                          ->limit($perPage)
-                          ->get();
-
-            // 批量获取关联的 website_introductions（如果需要但没有 JOIN）
-            if ($sortBy !== 'registered_at' && !$request->has('show_registered_at')) {
-                $domains = $items->pluck('domain')->unique()->toArray();
-                $websiteIntros = DB::table('website_introductions')
-                    ->whereIn('domain', $domains)
-                    ->select('domain', 'description', 'registered_at')
-                    ->get()
-                    ->keyBy('domain');
+            // 计算过滤后的记录数
+            $filteredCount = $todayCount;
+            if ($filterField && $filterValue !== null && $filterValue !== '') {
+                $filterFields = [
+                    'current_ranking',
+                    'daily_change',
+                    'week_change',
+                    'biweek_change',
+                    'triweek_change',
+                    'month_change',
+                    'quarter_change'
+                    // 移除 year_change
+                ];
                 
-                // 将网站介绍信息附加到结果中
-                $items = $items->map(function($item) use ($websiteIntros) {
-                    $item->website_description = $websiteIntros->get($item->domain)->description ?? null;
-                    $item->registered_at = $websiteIntros->get($item->domain)->registered_at ?? null;
-                    return $item;
-                });
+                if (in_array($filterField, $filterFields)) {
+                    $filterValue = (int)$filterValue;
+                    
+                    $countQuery = RankingChange::whereDate('record_date', $today);
+                    if ($filterField === 'current_ranking') {
+                        $countQuery->where($filterField, '<=', $filterValue);
+                    } else {
+                        $countQuery->where(function($q) use ($filterField, $filterValue) {
+                            $q->where($filterField, '>=', $filterValue)
+                              ->orWhere($filterField, '<=', -$filterValue);
+                        });
+                    }
+                    $filteredCount = $countQuery->count();
+                }
             }
-
-            // 创建分页器
-            $rankingChanges = new \Illuminate\Pagination\LengthAwarePaginator(
-                $items,
-                $total,
-                $perPage,
-                $page,
-                ['path' => request()->url()]
-            );
-            
-            $rankingChanges->withQueryString();
-
-            // 获取统计信息（使用缓存）
-            $todayCount = Cache::remember("total_count_{$today}", 300, function() use ($today) {
-                return DB::table('ranking_changes')
-                    ->whereDate('record_date', $today)
-                    ->count();
-            });
-            
-            $filteredCount = $total;
 
             return view('ranking-changes.index', compact(
                 'rankingChanges',
@@ -205,30 +183,61 @@ class RankingChangeController extends Controller
     }
     
     /**
-     * 获取域名的历史排名变化（优化版）
+     * 获取最大变化值 - 索引友好版本
+     */
+    private function getMaxChanges(string $date): array
+    {
+        $result = [];
+        
+        $changeFields = [
+            'daily_change' => 'max_daily_change',
+            'week_change' => 'max_week_change',
+            'month_change' => 'max_month_change',
+            'quarter_change' => 'max_quarter_change'
+        ];
+        
+        foreach ($changeFields as $field => $resultKey) {
+            // 获取最大负值（最大上升）
+            $maxUp = DB::table('ranking_changes')
+                ->where('record_date', $date)
+                ->where($field, '<', 0)
+                ->min($field);
+            
+            // 获取最大正值（最大下降）
+            $maxDown = DB::table('ranking_changes')
+                ->where('record_date', $date)
+                ->where($field, '>', 0)
+                ->max($field);
+            
+            // 比较绝对值
+            $maxUpAbs = $maxUp ? abs($maxUp) : 0;
+            $maxDownAbs = $maxDown ? abs($maxDown) : 0;
+            
+            $result[$resultKey] = max($maxUpAbs, $maxDownAbs);
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * 获取域名的历史排名变化
      */
     public function getDomainHistory(Request $request, string $domain)
     {
         try {
-            // 使用缓存
-            $cacheKey = "domain_history_{$domain}_" . now()->format('Y-m-d');
-            
-            $history = Cache::remember($cacheKey, 3600, function() use ($domain) {
-                return DB::table('ranking_changes')
-                    ->where('domain', $domain)
-                    ->orderBy('record_date', 'desc')
-                    ->limit(30)
-                    ->get([
-                        'record_date',
-                        'current_ranking',
-                        'daily_change',
-                        'daily_trend',
-                        'week_change',
-                        'week_trend',
-                        'month_change',
-                        'month_trend'
-                    ]);
-            });
+            $history = RankingChange::where('domain', $domain)
+                ->orderBy('record_date', 'desc')
+                ->limit(30) // 最近30天
+                ->get([
+                    'record_date',
+                    'current_ranking',
+                    'daily_change',
+                    'daily_trend',
+                    'week_change',
+                    'week_trend',
+                    'month_change',
+                    'month_trend'
+                ]);
 
             return response()->json([
                 'domain' => $domain,
