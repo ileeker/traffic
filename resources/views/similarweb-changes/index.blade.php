@@ -262,6 +262,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         年变化
                                     </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        注册日期
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -393,6 +396,16 @@
                                                     </span>
                                                 @endif
                                             </div>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                    <td  class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($change->websiteIntroduction && $change->websiteIntroduction->registered_at)
+                                            {{ $change->websiteIntroduction->registered_at->format('Y-m-d') }}
+                                            <span class="text-xs text-gray-500 block">
+                                                ({{ $change->websiteIntroduction->registered_at->diffForHumans() }})
+                                            </span>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
