@@ -54,7 +54,8 @@ class RankingChangeController extends Controller
 
             // 优化2: 只在需要时加载 website_introductions
             $needsIntroduction = ($sortBy === 'registered_at' || 
-                                 $request->has('show_registration'));
+                                 $request->has('show_registration') ||
+                                 $request->has('with_details'));
             
             if ($needsIntroduction) {
                 $query->leftJoin('website_introductions', 
@@ -187,8 +188,26 @@ class RankingChangeController extends Controller
             
             $rankingChanges->withQueryString();
 
-            // 优化10: 如果需要 Eloquent 关联，批量加载
-            if (!$needsIntroduction && $request->has('with_details')) {
+            // 将数据转换为具有正确属性的对象
+            // 这是修复的关键部分 - 确保属性名称一致
+            foreach ($results as $result) {
+                // 如果已经 join 了 website_introductions 表
+                if ($needsIntroduction) {
+                    // 创建一个 websiteIntroduction 对象包含相关信息
+                    $result->websiteIntroduction = (object) [
+                        'domain' => $result->domain,
+                        'registered_at' => $result->registered_at ?? null,
+                        'title' => $result->title ?? null,
+                        'description' => $result->description ?? null
+                    ];
+                } else {
+                    // 如果没有 join，设置为 null 或空对象
+                    $result->websiteIntroduction = null;
+                }
+            }
+
+            // 优化10: 如果需要额外的详情，批量加载
+            if (!$needsIntroduction && $request->has('load_introductions')) {
                 $domains = $results->pluck('domain')->toArray();
                 $introductions = DB::table('website_introductions')
                     ->whereIn('domain', $domains)
@@ -196,7 +215,12 @@ class RankingChangeController extends Controller
                     ->keyBy('domain');
                 
                 foreach ($results as $result) {
-                    $result->introduction = $introductions->get($result->domain);
+                    $intro = $introductions->get($result->domain);
+                    if ($intro) {
+                        $result->websiteIntroduction = $intro;
+                    } else {
+                        $result->websiteIntroduction = null;
+                    }
                 }
             }
 
@@ -289,9 +313,15 @@ class RankingChangeController extends Controller
                     ]);
             });
 
+            // 获取网站介绍信息
+            $introduction = DB::table('website_introductions')
+                ->where('domain', $domain)
+                ->first();
+
             return response()->json([
                 'domain' => $domain,
-                'history' => $history
+                'history' => $history,
+                'websiteIntroduction' => $introduction
             ]);
 
         } catch (\Exception $e) {
