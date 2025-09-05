@@ -26,4 +26,12 @@ class WebsiteIntroduction extends Model
         'archived_at' => 'datetime',  // 新增字段的类型转换
     ];
 
+    /**
+     * 与 SimilarwebChange 的一对一关系
+     */
+    public function similarwebChange()
+    {
+        return $this->hasOne(SimilarwebChange::class, 'domain', 'domain');
+    }
+
 }
