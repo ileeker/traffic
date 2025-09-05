@@ -51,7 +51,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">域名访问性测试</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">点击按钮测试当前页面所有域名的HTTP/HTTPS访问性</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">点击按钮测试当前页面所有域名的HTTP/HTTPS访问性。测试失败的域名行将被隐藏。</p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <button id="testAllDomains" 
@@ -646,25 +646,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 更新域名状态显示
     function updateDomainStatus(element, status) {
         element.innerHTML = '';
-        
+        const row = element.closest('tr');
+
         if (status.success) {
             element.innerHTML = `
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
                     ✓ ${status.protocol ? status.protocol.replace('://', '') : ''}
                 </span>
             `;
-        } else if (status.method === 'timeout') {
-            element.innerHTML = `
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
-                    ⏱ 超时
-                </span>
-            `;
         } else {
-            element.innerHTML = `
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-                    ✗ 失败
-                </span>
-            `;
+            // 如果测试失败或超时，隐藏整行
+            if (row) {
+                row.style.display = 'none';
+            }
         }
     }
     
@@ -674,6 +668,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         isTestRunning = true;
         shouldStopTest = false;
+
+        // 开始测试前，确保所有行都可见
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = '';
+        });
         
         const domains = getAllDomains();
         const total = domains.length;
@@ -686,6 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
         testBtn.classList.add('hidden');
         stopBtn.classList.remove('hidden');
         progressDiv.classList.remove('hidden');
+        clearBtn.classList.add('hidden');
         
         // 更新进度
         function updateProgress() {
@@ -726,6 +726,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     success++;
                 } else if (result.method === 'timeout') {
                     timeout++;
+                    fail++; // 超时也算作失败
                 } else {
                     fail++;
                 }
@@ -755,9 +756,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 清除结果
     clearBtn.addEventListener('click', function() {
+        // 清除状态显示
         document.querySelectorAll('.domain-test-status').forEach(el => {
             el.innerHTML = '';
         });
+        // 恢复所有被隐藏的行
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = '';
+        });
+        
         progressDiv.classList.add('hidden');
         clearBtn.classList.add('hidden');
         testBtn.textContent = '测试所有域名';
