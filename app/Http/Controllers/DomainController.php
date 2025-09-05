@@ -141,24 +141,26 @@ class DomainController extends Controller
     {
         try {
             $currentMonth = SimilarwebDomain::find(1)->current_month;
-
-            // 获取上个月的月份字符串 (如: 2025-07)
             $lastMonth = $currentMonth;
             
             // 获取排序参数
-            $sortBy = $request->get('sort', 'current_emv'); // 默认按访问量排序
-            $sortOrder = $request->get('order', 'desc'); // 默认降序
+            $sortBy = $request->get('sort', 'current_emv');
+            $sortOrder = $request->get('order', 'desc');
             
             // 获取过滤参数
             $filterField = $request->get('filter_field');
             $filterValue = $request->get('filter_value');
-            $registeredAfter = $request->get('registered_after'); // 新增：注册日期开始
-            $registeredBefore = $request->get('registered_before'); // 新增：注册日期结束
             
             // 验证排序字段
             $allowedSorts = [
-                'current_emv', 'ts_direct', 'ts_search', 'ts_referrals', 
-                'ts_social', 'ts_paid_referrals', 'ts_mail', 'registered_at' // 新增：允许按注册日期排序
+                'current_emv',
+                'ts_direct',
+                'ts_search',
+                'ts_referrals', 
+                'ts_social',
+                'ts_paid_referrals',
+                'ts_mail',
+                'registered_at' // 新增：允许按注册日期排序
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -171,54 +173,63 @@ class DomainController extends Controller
             }
 
             // 构建查询
-            $query = SimilarwebDomain::where('current_month', $lastMonth)
-                ->with(['websiteIntroduction:domain,registered_at']); // 预加载网站介绍信息
+            $query = SimilarwebDomain::where('current_month', $lastMonth);
+            
+            // 如果需要按注册日期过滤或排序，则需要 join 表
+            $needsJoin = ($sortBy === 'registered_at' || $filterField === 'registered_at');
 
-            // 应用数值过滤条件
+            if ($needsJoin) {
+                $query->leftJoin('website_introductions', 'similarweb_domains.domain', '=', 'website_introductions.domain')
+                      ->select([
+                          'similarweb_domains.domain', 'current_emv', 'ts_direct', 'ts_search',
+                          'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail',
+                          'website_introductions.registered_at' // 确保 select 了该字段
+                      ]);
+            } else {
+                $query->with(['websiteIntroduction:domain,registered_at'])
+                      ->select([
+                          'domain', 'current_emv', 'ts_direct', 'ts_search', 
+                          'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail'
+                      ]);
+            }
+
+            // 应用过滤条件
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 if (in_array($filterField, $allowedSorts)) {
-                    if (in_array($filterField, ['ts_direct', 'ts_search', 'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail'])) {
-                        // 流量来源字段：输入的是百分比，需要转换为小数
-                        $filterValue = floatval($filterValue) / 100;
-                    } else {
-                        // 访问量字段：直接使用数值
-                        $filterValue = floatval($filterValue);
+                    if ($filterField === 'registered_at') { // 新增：处理日期过滤
+                        try {
+                            $dateValue = \Carbon\Carbon::parse($filterValue)->format('Y-m-d');
+                            $query->whereDate('website_introductions.registered_at', '>=', $dateValue);
+                        } catch (\Exception $e) {
+                            // 忽略无效的日期格式
+                        }
+                    } elseif (in_array($filterField, ['ts_direct', 'ts_search', 'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail'])) {
+                        $value = floatval($filterValue) / 100;
+                        $query->where('similarweb_domains.' . $filterField, '>=', $value);
+                    } else { // current_emv
+                        $value = floatval($filterValue);
+                        $query->where('similarweb_domains.' . $filterField, '>=', $value);
                     }
-                    $query->where($filterField, '>=', $filterValue);
                 }
             }
-
-            // 新增：应用注册日期过滤条件
-            if ($registeredAfter || $registeredBefore) {
-                $query->whereHas('websiteIntroduction', function ($subQuery) use ($registeredAfter, $registeredBefore) {
-                    if ($registeredAfter) {
-                        $subQuery->whereDate('registered_at', '>=', $registeredAfter);
-                    }
-                    if ($registeredBefore) {
-                        $subQuery->whereDate('registered_at', '<=', $registeredBefore);
-                    }
-                });
-            }
-
-            // 获取过滤后的统计信息 (在应用排序的 join 之前计算)
-            $filteredCount = $query->count();
             
-            // 获取总统计信息
+            // 获取统计信息
             $totalCount = SimilarwebDomain::where('current_month', $lastMonth)->count();
+            
+            // 获取过滤后的统计信息 (count() 会忽略 select 和 orderBy)
+            $filteredCount = $query->count();
 
             // 应用排序
             if ($sortBy === 'registered_at') {
-                // 如果按注册日期排序，需要 join 表
-                $query->leftJoin('website_introductions', 'similarweb_domains.domain', '=', 'website_introductions.domain')
-                      ->select('similarweb_domains.*') // 选择主表所有字段以避免列名冲突
-                      ->orderBy('website_introductions.registered_at', $sortOrder);
+                $query->orderBy('website_introductions.registered_at', $sortOrder);
             } else {
-                $query->orderBy($sortBy, $sortOrder);
+                // 明确指定表名以避免 join 时的歧义
+                $query->orderBy('similarweb_domains.' . $sortBy, $sortOrder);
             }
 
             // 分页查询 - 每页100条
-            $domains = $query->paginate(100);
-
+            $domains = $query->paginate(100)->appends($request->query());
+            
             return view('domains.browse', compact(
                 'domains',
                 'lastMonth', 
@@ -227,9 +238,7 @@ class DomainController extends Controller
                 'totalCount',
                 'filteredCount',
                 'filterField',
-                'filterValue',
-                'registeredAfter', // 新增
-                'registeredBefore' // 新增
+                'filterValue'
             ));
 
         } catch (\Exception $e) {
