@@ -572,6 +572,7 @@ class DomainController extends Controller
 
             // 查询该分类下的所有域名，加载 websiteIntroduction 关联
             $domainsQuery = SimilarwebDomain::with('websiteIntroduction')
+                ->where('current_month', $lastMonth) // <--- 添加此行
                 ->where('category', $originalCategory)
                 ->select([
                     'domain',
@@ -599,7 +600,8 @@ class DomainController extends Controller
             $domains = $domainsQuery->paginate(50)->appends($request->query());
 
             // 获取该分类的统计信息
-            $categoryStats = SimilarwebDomain::where('category', $originalCategory)
+            $categoryStats = SimilarwebDomain::where('current_month', $lastMonth) // <--- 添加此行
+                ->where('category', $originalCategory)
                 ->selectRaw('COUNT(*) as total_count, AVG(current_emv) as avg_emv, MAX(current_emv) as max_emv, MIN(current_emv) as min_emv')
                 ->first();
 
