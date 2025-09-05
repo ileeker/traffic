@@ -17,7 +17,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">域名访问性测试</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400">点击按钮测试当前页面所有域名的HTTP/HTTPS访问性</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">点击按钮测试当前页面所有域名的HTTP/HTTPS访问性。测试失败的域名行将被隐藏。</p>
                         </div>
                         <div class="flex items-center space-x-4">
                             <button id="testAllDomains" 
@@ -512,10 +512,26 @@
                     const promises = batch.map(async (item) => {
                         if (shouldStopTest) return;
                         const result = await testDomain(item.domain);
-                        updateDomainStatus(item.element, result);
-                        if (result.success) success++;
-                        else if (result.method === 'timeout') timeout++;
-                        else fail++;
+                        
+                        // MODIFICATION START
+                        if (result.success) {
+                            updateDomainStatus(item.element, result);
+                            success++;
+                        } else {
+                            // Hide the entire table row on failure
+                            const row = item.element.closest('tr');
+                            if (row) {
+                                row.style.display = 'none';
+                            }
+                            // Still update the fail/timeout counters
+                            if (result.method === 'timeout') {
+                                timeout++;
+                            } else {
+                                fail++;
+                            }
+                        }
+                        // MODIFICATION END
+
                         completed++;
                         updateProgress();
                     });
@@ -537,10 +553,23 @@
             });
             
             clearBtn.addEventListener('click', function() {
+                // MODIFICATION START: Show all hidden rows again
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    row.style.display = ''; // Resets to default display style
+                });
+                // MODIFICATION END
+
                 document.querySelectorAll('.domain-test-status').forEach(el => el.innerHTML = '');
                 progressDiv.classList.add('hidden');
                 clearBtn.classList.add('hidden');
                 testBtn.textContent = '测试所有域名';
+                
+                // Also reset progress bar and counts
+                progressBar.style.width = '0%';
+                progressText.textContent = '0/0';
+                successCount.textContent = '0';
+                failCount.textContent = '0';
+                timeoutCount.textContent = '0';
             });
             
             testBtn.addEventListener('click', testAllDomains);
