@@ -45,7 +45,6 @@
 
     <div class="py-12">
         <div class="max-w-full mx-auto sm:px-6 lg:px-8 space-y-6">
-            <!-- 新增：域名访问测试按钮 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="flex justify-between items-center">
@@ -55,18 +54,18 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <button id="testAllDomains" 
-                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                    class="px-4 py-2 bg-green-600 text-gray-900 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 测试所有域名
                             </button>
                             <button id="stopTest" 
-                                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-red-600 text-gray-900 rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
                                 停止测试
                             </button>
                             <button id="clearResults" 
-                                    class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-gray-600 text-gray-900 rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
                                 清除结果
                             </button>
                         </div>
@@ -87,13 +86,10 @@
                 </div>
             </div>
 
-            <!-- 统计信息和控制面板 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
-                        <!-- 统计信息 -->
                         <div class="flex items-center space-x-6">
-                            <!-- 当前页面 -->
                             <div class="flex items-center">
                                 <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +104,6 @@
                                 </div>
                             </div>
 
-                            <!-- 显示范围 -->
                             <div class="flex items-center">
                                 <div class="p-2 bg-green-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +118,6 @@
                                 </div>
                             </div>
 
-                            <!-- 过滤后记录数 -->
                             @if($filterField)
                             <div class="flex items-center">
                                 <div class="p-2 bg-yellow-500 bg-opacity-10 rounded-full mr-3">
@@ -141,9 +135,7 @@
                             @endif
                         </div>
 
-                        <!-- 控制面板 -->
                         <div class="flex items-center space-x-4">
-                            <!-- 页码跳转 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">跳转：</label>
                                 <input type="number" 
@@ -159,7 +151,6 @@
                                 </button>
                             </div>
                             
-                            <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
                                 <select id="filterField" 
@@ -203,7 +194,6 @@
                                 @endif
                             </div>
 
-                            <!-- 排序控制 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
@@ -243,7 +233,6 @@
                 </div>
             </div>
 
-            <!-- 数据表格 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="overflow-x-auto">
@@ -289,7 +278,6 @@
                                             <a href="https://{{ $change->domain }}" target="_blank" title="访问 {{ $change->domain }}" class="ml-1">
                                                 <span class="text-green-500 text-sm">🌐</span>
                                             </a>
-                                            <!-- 访问状态指示器 -->
                                             <span class="domain-test-status ml-2" data-domain="{{ $change->domain }}"></span>
                                         </div>
                                     </td>
@@ -430,7 +418,6 @@
                 </div>
             </div>
 
-            <!-- 分页导航 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     {{ $similarwebChanges->appends(request()->query())->links() }}
