@@ -180,13 +180,17 @@
                                         <option value="halfyear_emv_growth_rate" {{ $filterField == 'halfyear_emv_growth_rate' ? 'selected' : '' }}>半年增长率 ≥ (%)</option>
                                         <option value="year_emv_growth_rate" {{ $filterField == 'year_emv_growth_rate' ? 'selected' : '' }}>年增长率 ≥ (%)</option>
                                     </optgroup>
+                                    <optgroup label="注册时间">
+                                        <option value="registered_after" {{ $filterField == 'registered_after' ? 'selected' : '' }}>注册晚于</option>
+                                        <option value="registered_before" {{ $filterField == 'registered_before' ? 'selected' : '' }}>注册早于</option>
+                                    </optgroup>
                                 </select>
-                                <input type="number" 
+                                <input type="{{ ($filterField == 'registered_after' || $filterField == 'registered_before') ? 'date' : 'number' }}" 
                                        id="filterValue"
-                                       placeholder="数值"
+                                       placeholder="{{ ($filterField == 'registered_after' || $filterField == 'registered_before') ? '选择日期' : '数值' }}"
                                        value="{{ $filterValue }}"
                                        step="any"
-                                       class="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                                       class="{{ ($filterField == 'registered_after' || $filterField == 'registered_before') ? 'w-40' : 'w-24' }} rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                                 <button id="applyFilter" 
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                                     应用
@@ -199,7 +203,7 @@
                                 @endif
                             </div>
 
-                            <!-- 排序控制 - 更新这个部分 -->
+                            <!-- 排序控制 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
@@ -520,24 +524,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 过滤字段变化时更新占位符
+    // 过滤字段变化时更新输入框类型和占位符
     document.getElementById('filterField').addEventListener('change', function() {
         const filterValue = document.getElementById('filterValue');
         
-        if (this.value === 'current_emv') {
-            filterValue.placeholder = 'EMV值';
-            filterValue.step = '1';
-        } else if (this.value.includes('growth_rate')) {
-            filterValue.placeholder = '百分比';
-            filterValue.step = '0.01';
-        } else if (this.value) {
-            filterValue.placeholder = '变化值';
-            filterValue.step = '1';
+        if (this.value === 'registered_after' || this.value === 'registered_before') {
+            // 切换到日期输入
+            filterValue.type = 'date';
+            filterValue.placeholder = '选择日期';
+            filterValue.step = '';
+            filterValue.classList.remove('w-24');
+            filterValue.classList.add('w-40');
         } else {
-            filterValue.placeholder = '数值';
-            filterValue.step = 'any';
+            // 切换回数字输入
+            filterValue.type = 'number';
+            filterValue.classList.remove('w-40');
+            filterValue.classList.add('w-24');
+            
+            if (this.value === 'current_emv') {
+                filterValue.placeholder = 'EMV值';
+                filterValue.step = '1';
+            } else if (this.value.includes('growth_rate')) {
+                filterValue.placeholder = '百分比';
+                filterValue.step = '0.01';
+            } else if (this.value) {
+                filterValue.placeholder = '变化值';
+                filterValue.step = '1';
+            } else {
+                filterValue.placeholder = '数值';
+                filterValue.step = 'any';
+            }
         }
+        
+        // 清空值
+        filterValue.value = '';
     });
+
+    // 页面加载时设置正确的输入框类型
+    const filterField = document.getElementById('filterField').value;
+    const filterValueInput = document.getElementById('filterValue');
+    if (filterField === 'registered_after' || filterField === 'registered_before') {
+        filterValueInput.type = 'date';
+        filterValueInput.classList.remove('w-24');
+        filterValueInput.classList.add('w-40');
+    }
 
     // ============ 域名访问测试功能 ============
     let isTestRunning = false;
@@ -620,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (status.success) {
             element.innerHTML = `
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-                    ✔ ${status.protocol ? status.protocol.replace('://', '') : ''}
+                    ✓ ${status.protocol ? status.protocol.replace('://', '') : ''}
                 </span>
             `;
         } else if (status.method === 'timeout') {
