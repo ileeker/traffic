@@ -51,26 +51,51 @@ class SimilarwebChangeController extends Controller
                 $sortOrder = 'desc';
             }
 
-            // 构建查询 - 查询指定月份的数据，包含增长率字段和网站介绍信息
-            $query = SimilarwebChange::where('record_month', $recordMonth)
-                ->with(['websiteIntroduction:domain,registered_at']) // 预加载网站介绍信息，只选择需要的字段
-                ->select([
-                    'id',
-                    'domain',
-                    'current_emv',
-                    'month_emv_change',
-                    'month_emv_trend',
-                    'month_emv_growth_rate',
-                    'quarter_emv_change',
-                    'quarter_emv_trend',
-                    'quarter_emv_growth_rate',
-                    'halfyear_emv_change',
-                    'halfyear_emv_trend',
-                    'halfyear_emv_growth_rate',
-                    'year_emv_change',
-                    'year_emv_trend',
-                    'year_emv_growth_rate'
-                ]);
+            // 构建查询 - 根据是否需要注册时间排序来决定是否JOIN
+            if ($sortBy === 'registered_at') {
+                // 需要注册时间排序时，使用JOIN查询
+                $query = DB::table('similarweb_changes')
+                    ->leftJoin('website_introductions', 'similarweb_changes.domain', '=', 'website_introductions.domain')
+                    ->where('similarweb_changes.record_month', $recordMonth)
+                    ->select(
+                        'similarweb_changes.id',
+                        'similarweb_changes.domain',
+                        'similarweb_changes.current_emv',
+                        'similarweb_changes.month_emv_change',
+                        'similarweb_changes.month_emv_trend',
+                        'similarweb_changes.month_emv_growth_rate',
+                        'similarweb_changes.quarter_emv_change',
+                        'similarweb_changes.quarter_emv_trend',
+                        'similarweb_changes.quarter_emv_growth_rate',
+                        'similarweb_changes.halfyear_emv_change',
+                        'similarweb_changes.halfyear_emv_trend',
+                        'similarweb_changes.halfyear_emv_growth_rate',
+                        'similarweb_changes.year_emv_change',
+                        'similarweb_changes.year_emv_trend',
+                        'similarweb_changes.year_emv_growth_rate',
+                        'website_introductions.registered_at'
+                    );
+            } else {
+                // 不需要注册时间排序时，使用Eloquent查询
+                $query = SimilarwebChange::where('record_month', $recordMonth)
+                    ->select([
+                        'id',
+                        'domain',
+                        'current_emv',
+                        'month_emv_change',
+                        'month_emv_trend',
+                        'month_emv_growth_rate',
+                        'quarter_emv_change',
+                        'quarter_emv_trend',
+                        'quarter_emv_growth_rate',
+                        'halfyear_emv_change',
+                        'halfyear_emv_trend',
+                        'halfyear_emv_growth_rate',
+                        'year_emv_change',
+                        'year_emv_trend',
+                        'year_emv_growth_rate'
+                    ]);
+            }
 
             // 应用数值筛选 - 支持增长率筛选
             if ($filterField && $filterValue !== null && $filterValue !== '') {
@@ -87,6 +112,9 @@ class SimilarwebChangeController extends Controller
                 ];
                 
                 if (in_array($filterField, $filterFields)) {
+                    // 根据查询类型添加表前缀
+                    $fieldName = $sortBy === 'registered_at' ? "similarweb_changes.$filterField" : $filterField;
+                    
                     // 判断是否为增长率字段
                     if (strpos($filterField, 'growth_rate') !== false) {
                         // 增长率筛选（百分比）
@@ -95,24 +123,24 @@ class SimilarwebChangeController extends Controller
                         // 可以选择筛选大于、小于或绝对值
                         if ($request->get('filter_type') === 'abs') {
                             // 筛选绝对值大于等于指定值的
-                            $query->where(function($q) use ($filterField, $filterValue) {
-                                $q->where($filterField, '>=', $filterValue)
-                                  ->orWhere($filterField, '<=', -$filterValue);
+                            $query->where(function($q) use ($fieldName, $filterValue) {
+                                $q->where($fieldName, '>=', $filterValue)
+                                  ->orWhere($fieldName, '<=', -$filterValue);
                             });
                         } else {
                             // 默认筛选大于等于指定值的
-                            $query->where($filterField, '>=', $filterValue);
+                            $query->where($fieldName, '>=', $filterValue);
                         }
                     } elseif ($filterField === 'current_emv') {
                         // EMV值筛选（大于等于）
                         $filterValue = (int)$filterValue;
-                        $query->where($filterField, '>=', $filterValue);
+                        $query->where($fieldName, '>=', $filterValue);
                     } else {
                         // 变化值筛选：优化版本
                         $filterValue = (int)$filterValue;
-                        $query->where(function($q) use ($filterField, $filterValue) {
-                            $q->where($filterField, '>=', $filterValue)
-                              ->orWhere($filterField, '<=', -$filterValue);
+                        $query->where(function($q) use ($fieldName, $filterValue) {
+                            $q->where($fieldName, '>=', $filterValue)
+                              ->orWhere($fieldName, '<=', -$filterValue);
                         });
                     }
                 }
@@ -120,39 +148,64 @@ class SimilarwebChangeController extends Controller
 
             // 应用排序
             if ($sortBy === 'registered_at') {
-                // 注册时间排序需要使用join
-                $query->leftJoin('website_introductions', 'similarweb_changes.domain', '=', 'website_introductions.domain')
-                    ->orderBy('website_introductions.registered_at', $sortOrder);
+                // 注册时间排序
+                $query->orderBy('website_introductions.registered_at', $sortOrder);
             } elseif (in_array($sortBy, ['domain', 'current_emv']) || strpos($sortBy, 'growth_rate') !== false) {
                 // 直接字段排序（包括增长率字段）
-                $query->orderBy($sortBy, $sortOrder);
+                $fieldName = ($sortBy === 'registered_at' ? $sortBy : 
+                             (DB::table('similarweb_changes') === $query ? "similarweb_changes.$sortBy" : $sortBy));
+                $query->orderBy($fieldName, $sortOrder);
             } else {
                 // 对于变化字段的排序优化
+                $fieldName = (DB::table('similarweb_changes') === $query ? "similarweb_changes.$sortBy" : $sortBy);
                 if ($sortOrder === 'desc') {
                     // 降序：增长最多的优先
                     $query->orderByRaw("
                         CASE 
-                            WHEN $sortBy IS NULL THEN 2
-                            WHEN $sortBy >= 0 THEN 0
+                            WHEN $fieldName IS NULL THEN 2
+                            WHEN $fieldName >= 0 THEN 0
                             ELSE 1
                         END,
-                        $sortBy DESC
+                        $fieldName DESC
                     ");
                 } else {
                     // 升序：下降最多的优先
                     $query->orderByRaw("
                         CASE 
-                            WHEN $sortBy IS NULL THEN 2
-                            WHEN $sortBy <= 0 THEN 0
+                            WHEN $fieldName IS NULL THEN 2
+                            WHEN $fieldName <= 0 THEN 0
                             ELSE 1
                         END,
-                        $sortBy ASC
+                        $fieldName ASC
                     ");
                 }
             }
 
             // 分页查询
-            $similarwebChanges = $query->paginate(100)->withQueryString();
+            if ($sortBy === 'registered_at') {
+                // 使用DB查询时的分页
+                $similarwebChanges = $query->paginate(100);
+                
+                // 手动加载关联关系
+                $domains = collect($similarwebChanges->items())->pluck('domain')->toArray();
+                $websiteIntroductions = \App\Models\WebsiteIntroduction::whereIn('domain', $domains)
+                    ->select('domain', 'registered_at')
+                    ->get()
+                    ->keyBy('domain');
+                
+                // 将关联数据附加到结果中
+                foreach ($similarwebChanges->items() as $item) {
+                    $item->websiteIntroduction = $websiteIntroductions->get($item->domain);
+                }
+                
+                // 添加查询字符串
+                $similarwebChanges->withQueryString();
+            } else {
+                // 使用Eloquent查询时的分页，包含关联加载
+                $similarwebChanges = $query->with(['websiteIntroduction:domain,registered_at'])
+                    ->paginate(100)
+                    ->withQueryString();
+            }
             
             // 获取统计信息 - 包含增长率统计
             $statsQuery = SimilarwebChange::where('record_month', $recordMonth);
