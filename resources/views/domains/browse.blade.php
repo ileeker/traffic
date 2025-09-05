@@ -88,7 +88,7 @@
                                 </div>
                             </div>
 
-                            @if($filterField && $filterValue !== null && $filterValue !== '')
+                            @if($filterField || $registeredAfter || $registeredBefore)
                             <div class="flex items-center">
                                 <div class="p-2 bg-orange-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@
                                 </button>
                             </div>
                             <!-- 过滤器 -->
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-2 flex-wrap gap-y-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
                                 <select id="filterField" 
                                         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
@@ -143,11 +143,18 @@
                                        class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
                                        step="0.1"
                                        min="0">
+
+                                <!-- 新增：注册日期过滤器 -->
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 ml-2">注册于:</label>
+                                <input type="date" id="registered_after" value="{{ $registeredAfter ?? '' }}" class="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm p-2">
+                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                <input type="date" id="registered_before" value="{{ $registeredBefore ?? '' }}" class="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm p-2">
+                                
                                 <button id="applyFilter" 
                                         class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                                     应用
                                 </button>
-                                @if($filterField)
+                                @if($filterField || $registeredAfter || $registeredBefore)
                                 <button id="clearFilter" 
                                         class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
                                     清除
@@ -168,6 +175,8 @@
                                     <option value="ts_social-desc" {{ $sortBy == 'ts_social' && $sortOrder == 'desc' ? 'selected' : '' }}>社交流量 ↓</option>
                                     <option value="ts_paid_referrals-desc" {{ $sortBy == 'ts_paid_referrals' && $sortOrder == 'desc' ? 'selected' : '' }}>付费流量 ↓</option>
                                     <option value="ts_mail-desc" {{ $sortBy == 'ts_mail' && $sortOrder == 'desc' ? 'selected' : '' }}>邮件流量 ↓</option>
+                                    <option value="registered_at-desc" {{ $sortBy == 'registered_at' && $sortOrder == 'desc' ? 'selected' : '' }}>注册日期 ↓</option>
+                                    <option value="registered_at-asc" {{ $sortBy == 'registered_at' && $sortOrder == 'asc' ? 'selected' : '' }}>注册日期 ↑</option>
                                 </select>
                             </div>
                         </div>
@@ -279,7 +288,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                    <td colspan="9" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                                         暂无数据
                                     </td>
                                 </tr>
@@ -342,15 +351,29 @@
             document.getElementById('applyFilter').addEventListener('click', function() {
                 const filterField = document.getElementById('filterField').value;
                 const filterValue = document.getElementById('filterValue').value;
+                const registeredAfter = document.getElementById('registered_after').value;
+                const registeredBefore = document.getElementById('registered_before').value;
                 
                 const url = new URL(window.location);
                 
                 if (filterField && filterValue !== '') {
                     url.searchParams.set('filter_field', filterField);
-                    url.searchParams.set('filter_value', filterValue);
+                    url.search_params.set('filter_value', filterValue);
                 } else {
                     url.searchParams.delete('filter_field');
                     url.searchParams.delete('filter_value');
+                }
+
+                if (registeredAfter) {
+                    url.searchParams.set('registered_after', registeredAfter);
+                } else {
+                    url.searchParams.delete('registered_after');
+                }
+
+                if (registeredBefore) {
+                    url.searchParams.set('registered_before', registeredBefore);
+                } else {
+                    url.searchParams.delete('registered_before');
                 }
                 
                 url.searchParams.delete('page'); // 重置到第一页
@@ -364,6 +387,8 @@
                     const url = new URL(window.location);
                     url.searchParams.delete('filter_field');
                     url.searchParams.delete('filter_value');
+                    url.searchParams.delete('registered_after');
+                    url.searchParams.delete('registered_before');
                     url.searchParams.delete('page'); // 重置到第一页
                     window.location.href = url.toString();
                 });
@@ -386,12 +411,16 @@
                 }
             });
 
-            // 回车键应用过滤器
-            document.getElementById('filterValue').addEventListener('keypress', function(e) {
+            function applyFiltersOnEnter(e) {
                 if (e.key === 'Enter') {
                     document.getElementById('applyFilter').click();
                 }
-            });
+            }
+
+            // 回车键应用过滤器
+            document.getElementById('filterValue').addEventListener('keypress', applyFiltersOnEnter);
+            document.getElementById('registered_after').addEventListener('keypress', applyFiltersOnEnter);
+            document.getElementById('registered_before').addEventListener('keypress', applyFiltersOnEnter);
 
             // ============ 新增：域名访问测试功能 ============
             let isTestRunning = false;
