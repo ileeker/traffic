@@ -23,7 +23,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-600 dark:text-gray-400">当前页面</p>
                 <p class="text-lg font-bold text-gray-900 dark:text-white">
-                    第 {{ $paginator->currentPage() }} 页 / 共 {{ $paginator->lastPage() }} 页
+                    第 {{ $domains->currentPage() }} 页 / 共 {{ $domains->lastPage() }} 页
                 </p>
             </div>
         </div>
@@ -37,7 +37,7 @@
             <div>
                 <p class="text-xs font-medium text-gray-600 dark:text-gray-400">显示范围</p>
                 <p class="text-lg font-bold text-gray-900 dark:text-white">
-                    {{ $paginator->firstItem() ?? 0 }} - {{ $paginator->lastItem() ?? 0 }}
+                    {{ $domains->firstItem() ?? 0 }} - {{ $domains->lastItem() ?? 0 }}
                 </p>
             </div>
         </div>
@@ -65,9 +65,9 @@
             <input type="number" 
                    id="pageJumpInput"
                    placeholder="页码"
-                   value="{{ $paginator->currentPage() }}"
+                   value="{{ $domains->currentPage() }}"
                    min="1"
-                   max="{{ $paginator->lastPage() }}"
+                   max="{{ $domains->lastPage() }}"
                    class="w-16 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
             <button id="pageJumpBtn" 
                     class="px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200 text-sm">
@@ -248,3 +248,4 @@
     });
 </script>
 @endpush
+
