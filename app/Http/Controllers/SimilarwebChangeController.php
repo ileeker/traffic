@@ -27,19 +27,12 @@ class SimilarwebChangeController extends Controller
             $currentMonth = SimilarwebChange::find(1)->record_month;
             $recordMonth = $request->get('month', $currentMonth);
             
-            // 验证排序字段 - 添加注册时间排序
+            // 验证排序字段
             $allowedSorts = [
-                'domain',
-                'current_emv',
-                'month_emv_change',
-                'month_emv_growth_rate',
-                'quarter_emv_change',
-                'quarter_emv_growth_rate',
-                'halfyear_emv_change',
-                'halfyear_emv_growth_rate',
-                'year_emv_change',
-                'year_emv_growth_rate',
-                'registered_at' // 新增注册时间排序
+                'domain', 'current_emv', 'month_emv_change', 'month_emv_growth_rate',
+                'quarter_emv_change', 'quarter_emv_growth_rate', 'halfyear_emv_change',
+                'halfyear_emv_growth_rate', 'year_emv_change', 'year_emv_growth_rate',
+                'registered_at'
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -51,142 +44,66 @@ class SimilarwebChangeController extends Controller
                 $sortOrder = 'desc';
             }
 
-            // 构建查询 - 根据是否需要注册时间排序来决定是否JOIN
-            if ($sortBy === 'registered_at') {
-                // 需要注册时间排序时，使用JOIN查询
+            // [修复] 决定是否需要JOIN查询: 当按注册时间排序或过滤时都需要
+            $needsJoin = ($sortBy === 'registered_at') || in_array($filterField, ['registered_after', 'registered_before']);
+
+            // 构建查询
+            if ($needsJoin) {
+                // 需要注册时间排序或过滤时，使用JOIN查询
                 $query = DB::table('similarweb_changes')
                     ->leftJoin('website_introductions', 'similarweb_changes.domain', '=', 'website_introductions.domain')
                     ->where('similarweb_changes.record_month', $recordMonth)
                     ->select(
-                        'similarweb_changes.id',
-                        'similarweb_changes.domain',
-                        'similarweb_changes.current_emv',
-                        'similarweb_changes.month_emv_change',
-                        'similarweb_changes.month_emv_trend',
-                        'similarweb_changes.month_emv_growth_rate',
-                        'similarweb_changes.quarter_emv_change',
-                        'similarweb_changes.quarter_emv_trend',
-                        'similarweb_changes.quarter_emv_growth_rate',
-                        'similarweb_changes.halfyear_emv_change',
-                        'similarweb_changes.halfyear_emv_trend',
-                        'similarweb_changes.halfyear_emv_growth_rate',
-                        'similarweb_changes.year_emv_change',
-                        'similarweb_changes.year_emv_trend',
-                        'similarweb_changes.year_emv_growth_rate',
+                        'similarweb_changes.*', // 选择所有字段
                         'website_introductions.registered_at'
                     );
             } else {
-                // 不需要注册时间排序时，使用Eloquent查询
-                $query = SimilarwebChange::where('record_month', $recordMonth)
-                    ->select([
-                        'id',
-                        'domain',
-                        'current_emv',
-                        'month_emv_change',
-                        'month_emv_trend',
-                        'month_emv_growth_rate',
-                        'quarter_emv_change',
-                        'quarter_emv_trend',
-                        'quarter_emv_growth_rate',
-                        'halfyear_emv_change',
-                        'halfyear_emv_trend',
-                        'halfyear_emv_growth_rate',
-                        'year_emv_change',
-                        'year_emv_trend',
-                        'year_emv_growth_rate'
-                    ]);
+                // 不需要时，使用Eloquent查询以获得更好的性能和便利性
+                $query = SimilarwebChange::where('record_month', $recordMonth);
             }
 
-            // 应用数值筛选 - 支持增长率筛选
+            // 应用筛选
             if ($filterField && $filterValue !== null && $filterValue !== '') {
-                $filterFields = [
-                    'current_emv',
-                    'month_emv_change',
-                    'quarter_emv_change',
-                    'halfyear_emv_change',
-                    'year_emv_change',
-                    'month_emv_growth_rate',
-                    'quarter_emv_growth_rate',
-                    'halfyear_emv_growth_rate',
-                    'year_emv_growth_rate'
+                $numericFilterFields = [
+                    'current_emv', 'month_emv_change', 'quarter_emv_change', 'halfyear_emv_change', 'year_emv_change',
+                    'month_emv_growth_rate', 'quarter_emv_growth_rate', 'halfyear_emv_growth_rate', 'year_emv_growth_rate'
                 ];
                 
-                if (in_array($filterField, $filterFields)) {
-                    // 根据查询类型添加表前缀
-                    $fieldName = $sortBy === 'registered_at' ? "similarweb_changes.$filterField" : $filterField;
-                    
-                    // 判断是否为增长率字段
+                if (in_array($filterField, $numericFilterFields)) {
+                    $fieldName = $needsJoin ? "similarweb_changes.$filterField" : $filterField;
                     if (strpos($filterField, 'growth_rate') !== false) {
-                        // 增长率筛选（百分比）
-                        $filterValue = (float)$filterValue;
-                        
-                        // 可以选择筛选大于、小于或绝对值
-                        if ($request->get('filter_type') === 'abs') {
-                            // 筛选绝对值大于等于指定值的
-                            $query->where(function($q) use ($fieldName, $filterValue) {
-                                $q->where($fieldName, '>=', $filterValue)
-                                  ->orWhere($fieldName, '<=', -$filterValue);
-                            });
-                        } else {
-                            // 默认筛选大于等于指定值的
-                            $query->where($fieldName, '>=', $filterValue);
-                        }
-                    } elseif ($filterField === 'current_emv') {
-                        // EMV值筛选（大于等于）
-                        $filterValue = (int)$filterValue;
-                        $query->where($fieldName, '>=', $filterValue);
+                        $query->where($fieldName, '>=', (float)$filterValue);
                     } else {
-                        // 变化值筛选：优化版本
-                        $filterValue = (int)$filterValue;
-                        $query->where(function($q) use ($fieldName, $filterValue) {
-                            $q->where($fieldName, '>=', $filterValue)
-                              ->orWhere($fieldName, '<=', -$filterValue);
-                        });
+                        $query->where($fieldName, '>=', (int)$filterValue);
+                    }
+                } 
+                // [新增] 处理注册日期过滤
+                elseif (in_array($filterField, ['registered_after', 'registered_before'])) {
+                    try {
+                        $filterDate = Carbon::parse($filterValue)->toDateString();
+                        if ($filterField === 'registered_after') {
+                            $query->whereDate('website_introductions.registered_at', '>=', $filterDate);
+                        } elseif ($filterField === 'registered_before') {
+                            $query->whereDate('website_introductions.registered_at', '<=', $filterDate);
+                        }
+                    } catch (\Exception $e) {
+                        // 如果日期格式错误，则忽略此过滤器
                     }
                 }
             }
 
             // 应用排序
             if ($sortBy === 'registered_at') {
-                // 注册时间排序
                 $query->orderBy('website_introductions.registered_at', $sortOrder);
-            } elseif (in_array($sortBy, ['domain', 'current_emv']) || strpos($sortBy, 'growth_rate') !== false) {
-                // 直接字段排序（包括增长率字段）
-                $fieldName = ($sortBy === 'registered_at' ? $sortBy : 
-                             (DB::table('similarweb_changes') === $query ? "similarweb_changes.$sortBy" : $sortBy));
-                $query->orderBy($fieldName, $sortOrder);
             } else {
-                // 对于变化字段的排序优化
-                $fieldName = (DB::table('similarweb_changes') === $query ? "similarweb_changes.$sortBy" : $sortBy);
-                if ($sortOrder === 'desc') {
-                    // 降序：增长最多的优先
-                    $query->orderByRaw("
-                        CASE 
-                            WHEN $fieldName IS NULL THEN 2
-                            WHEN $fieldName >= 0 THEN 0
-                            ELSE 1
-                        END,
-                        $fieldName DESC
-                    ");
-                } else {
-                    // 升序：下降最多的优先
-                    $query->orderByRaw("
-                        CASE 
-                            WHEN $fieldName IS NULL THEN 2
-                            WHEN $fieldName <= 0 THEN 0
-                            ELSE 1
-                        END,
-                        $fieldName ASC
-                    ");
-                }
+                $fieldName = $needsJoin ? "similarweb_changes.$sortBy" : $sortBy;
+                $query->orderBy($fieldName, $sortOrder);
             }
-
+            
             // 分页查询
-            if ($sortBy === 'registered_at' || $filterField === 'registered_after' || $filterField === 'registered_before') {
-                // 使用DB查询时的分页
+            if ($needsJoin) {
                 $similarwebChanges = $query->paginate(100);
-                
-                // 手动加载关联关系
+                // 手动加载关联关系 (因为DB查询不会自动创建Eloquent模型)
                 $domains = collect($similarwebChanges->items())->pluck('domain')->toArray();
                 $websiteIntroductions = \App\Models\WebsiteIntroduction::whereIn('domain', $domains)
                     ->select('domain', 'registered_at')
@@ -197,8 +114,6 @@ class SimilarwebChangeController extends Controller
                 foreach ($similarwebChanges->items() as $item) {
                     $item->websiteIntroduction = $websiteIntroductions->get($item->domain);
                 }
-                
-                // 添加查询字符串
                 $similarwebChanges->withQueryString();
             } else {
                 // 使用Eloquent查询时的分页，包含关联加载
@@ -207,38 +122,14 @@ class SimilarwebChangeController extends Controller
                     ->withQueryString();
             }
             
-            // 获取统计信息 - 包含增长率统计
-            $statsQuery = SimilarwebChange::where('record_month', $recordMonth);
+            // 获取统计信息
+            $monthCount = SimilarwebChange::where('record_month', $recordMonth)->count();
             
-            // 基础统计
-            $monthCount = $statsQuery->count();
-            
-            // 计算过滤后的记录数
+            // [修复] 计算过滤后的记录数
             $filteredCount = $monthCount;
             if ($filterField && $filterValue !== null && $filterValue !== '') {
-                $countQuery = SimilarwebChange::where('record_month', $recordMonth);
-                
-                if (strpos($filterField, 'growth_rate') !== false) {
-                    $filterValue = (float)$filterValue;
-                    if ($request->get('filter_type') === 'abs') {
-                        $countQuery->where(function($q) use ($filterField, $filterValue) {
-                            $q->where($filterField, '>=', $filterValue)
-                              ->orWhere($filterField, '<=', -$filterValue);
-                        });
-                    } else {
-                        $countQuery->where($filterField, '>=', $filterValue);
-                    }
-                } elseif ($filterField === 'current_emv') {
-                    $filterValue = (int)$filterValue;
-                    $countQuery->where($filterField, '>=', $filterValue);
-                } elseif (in_array($filterField, ['month_emv_change', 'quarter_emv_change', 'halfyear_emv_change', 'year_emv_change'])) {
-                    $filterValue = (int)$filterValue;
-                    $countQuery->where(function($q) use ($filterField, $filterValue) {
-                        $q->where($filterField, '>=', $filterValue)
-                          ->orWhere($filterField, '<=', -$filterValue);
-                    });
-                }
-                
+                // 使用主查询的克隆来获取过滤后的总数，避免重复逻辑
+                $countQuery = clone $query;
                 $filteredCount = $countQuery->count();
             }
             
@@ -264,6 +155,8 @@ class SimilarwebChangeController extends Controller
             return redirect()->back()->with('error', '数据加载失败：' . $e->getMessage());
         }
     }
+
+    // ... 控制器中的其他方法保持不变 ...
 
     /**
      * 获取EMV变化统计信息 - 增强版本
