@@ -199,7 +199,7 @@
                                 @endif
                             </div>
 
-                            <!-- 排序控制 -->
+                            <!-- 排序控制 - 更新这个部分 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
@@ -209,6 +209,8 @@
                                         <option value="current_emv-asc" {{ $sortBy == 'current_emv' && $sortOrder == 'asc' ? 'selected' : '' }}>EMV (低→高)</option>
                                         <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
                                         <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
+                                        <option value="registered_at-desc" {{ $sortBy == 'registered_at' && $sortOrder == 'desc' ? 'selected' : '' }}>注册时间 (新→旧)</option>
+                                        <option value="registered_at-asc" {{ $sortBy == 'registered_at' && $sortOrder == 'asc' ? 'selected' : '' }}>注册时间 (旧→新)</option>
                                     </optgroup>
                                     <optgroup label="变化值排序">
                                         <option value="month_emv_change-desc" {{ $sortBy == 'month_emv_change' && $sortOrder == 'desc' ? 'selected' : '' }}>月增长最多</option>

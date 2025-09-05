@@ -27,7 +27,7 @@ class SimilarwebChangeController extends Controller
             $currentMonth = SimilarwebChange::find(1)->record_month;
             $recordMonth = $request->get('month', $currentMonth);
             
-            // 验证排序字段 - 添加增长率字段
+            // 验证排序字段 - 添加注册时间排序
             $allowedSorts = [
                 'domain',
                 'current_emv',
@@ -38,7 +38,8 @@ class SimilarwebChangeController extends Controller
                 'halfyear_emv_change',
                 'halfyear_emv_growth_rate',
                 'year_emv_change',
-                'year_emv_growth_rate'
+                'year_emv_growth_rate',
+                'registered_at' // 新增注册时间排序
             ];
             
             if (!in_array($sortBy, $allowedSorts)) {
@@ -118,7 +119,11 @@ class SimilarwebChangeController extends Controller
             }
 
             // 应用排序
-            if (in_array($sortBy, ['domain', 'current_emv']) || strpos($sortBy, 'growth_rate') !== false) {
+            if ($sortBy === 'registered_at') {
+                // 注册时间排序需要使用join
+                $query->leftJoin('website_introductions', 'similarweb_changes.domain', '=', 'website_introductions.domain')
+                    ->orderBy('website_introductions.registered_at', $sortOrder);
+            } elseif (in_array($sortBy, ['domain', 'current_emv']) || strpos($sortBy, 'growth_rate') !== false) {
                 // 直接字段排序（包括增长率字段）
                 $query->orderBy($sortBy, $sortOrder);
             } else {
