@@ -182,7 +182,7 @@ class SimilarwebChangeController extends Controller
             }
 
             // 分页查询
-            if ($sortBy === 'registered_at') {
+            if ($sortBy === 'registered_at' || $filterField === 'registered_after' || $filterField === 'registered_before') {
                 // 使用DB查询时的分页
                 $similarwebChanges = $query->paginate(100);
                 
