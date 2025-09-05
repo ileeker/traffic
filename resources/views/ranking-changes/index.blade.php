@@ -12,7 +12,6 @@
 
     <div class="py-12">
         <div class="max-w-full mx-auto sm:px-6 lg:px-8 space-y-6">
-            <!-- 新增：域名访问测试按钮 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="flex justify-between items-center">
@@ -22,18 +21,18 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <button id="testAllDomains" 
-                                    class="px-4 py-2 bg-green-600 text-black rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                    class="px-4 py-2 bg-green-600 text-gray-900 rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 测试所有域名
                             </button>
                             <button id="stopTest" 
-                                    class="px-4 py-2 bg-red-600 text-black rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-red-600 text-gray-900 rounded-md hover:bg-red-700 transition-colors duration-200 hidden">
                                 停止测试
                             </button>
                             <button id="clearResults" 
-                                    class="px-4 py-2 bg-gray-600 text-black rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
+                                    class="px-4 py-2 bg-gray-600 text-gray-900 rounded-md hover:bg-gray-700 transition-colors duration-200 hidden">
                                 清除结果
                             </button>
                         </div>
@@ -54,13 +53,10 @@
                 </div>
             </div>
 
-            <!-- 统计信息和控制面板 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="flex flex-wrap justify-between items-center space-y-4 md:space-y-0">
-                        <!-- 统计信息 -->
                         <div class="flex items-center space-x-6">
-                            <!-- 当前页面 -->
                             <div class="flex items-center">
                                 <div class="p-2 bg-blue-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +71,6 @@
                                 </div>
                             </div>
 
-                            <!-- 显示范围 -->
                             <div class="flex items-center">
                                 <div class="p-2 bg-green-500 bg-opacity-10 rounded-full mr-3">
                                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,9 +86,7 @@
                             </div>
                         </div>
 
-                        <!-- 控制面板 -->
                         <div class="flex items-center space-x-4">
-                            <!-- 页码跳转 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">跳转：</label>
                                 <input type="number" 
@@ -109,7 +102,6 @@
                                 </button>
                             </div>
                             
-                            <!-- 数值过滤器 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
                                 <select id="filterField" 
@@ -122,8 +114,7 @@
                                     <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
                                     <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
                                     <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
-                                    <!-- <option value="year_change" {{ $filterField == 'year_change' ? 'selected' : '' }}>年变化 ≥</option> -->
-                                </select>
+                                    </select>
                                 <input type="number" 
                                        id="filterValue"
                                        placeholder="数值"
@@ -141,7 +132,6 @@
                                 @endif
                             </div>
 
-                            <!-- 排序控制 -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
                                 <select id="sortSelect" 
@@ -151,7 +141,6 @@
                                     <option value="domain-asc" {{ $sortBy == 'domain' && $sortOrder == 'asc' ? 'selected' : '' }}>域名 (A→Z)</option>
                                     <option value="domain-desc" {{ $sortBy == 'domain' && $sortOrder == 'desc' ? 'selected' : '' }}>域名 (Z→A)</option>
                                     
-                                    <!-- 新增：注册时间排序选项 -->
                                     <option value="registered_at-asc" {{ $sortBy == 'registered_at' && $sortOrder == 'asc' ? 'selected' : '' }}>注册时间 (早→晚)</option>
                                     <option value="registered_at-desc" {{ $sortBy == 'registered_at' && $sortOrder == 'desc' ? 'selected' : '' }}>注册时间 (晚→早)</option>    
                                     
@@ -167,16 +156,13 @@
                                     <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
                                     <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度上升最多</option>
                                     <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
-                                    <!-- <option value="year_change-desc" {{ $sortBy == 'year_change' && $sortOrder == 'desc' ? 'selected' : '' }}>年上升最多</option> -->
-                                    <!-- <option value="year_change-asc" {{ $sortBy == 'year_change' && $sortOrder == 'asc' ? 'selected' : '' }}>年下降最多</option> -->
-                                </select>
+                                    </select>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 数据表格 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     <div class="overflow-x-auto">
@@ -207,7 +193,6 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         季度变化
                                     </th>
-                                    <!-- 表头部分 - 将年变化改为注册时间 -->
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         注册时间
                                     </th>
@@ -228,10 +213,8 @@
                                                 {{ $change->domain }}
                                             </a>
                                             <a href="https://{{ $change->domain }}" target="_blank" title="访问 {{ $change->domain }}">
-                                                <!-- 纯文本符号 -->
                                                 <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
                                             </a>
-                                            <!-- 新增：访问状态指示器 -->
                                             <span class="domain-test-status ml-2" data-domain="{{ $change->domain }}"></span>
                                         </div>
                                     </td>
@@ -340,7 +323,6 @@
                                             <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
-                                    <!-- 表格数据部分 - 显示 registered_at -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($change->websiteIntroduction && $change->websiteIntroduction->registered_at)
                                             @php
@@ -382,7 +364,6 @@
                 </div>
             </div>
 
-            <!-- 分页导航 -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
                     {{ $rankingChanges->appends(request()->query())->links() }}
@@ -391,7 +372,6 @@
         </div>
     </div>
 
-<!-- 将此JavaScript代码替换原有的script标签内容 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 页码跳转功能
@@ -506,7 +486,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!document.getElementById('toggleFailedDomains')) {
             const toggleBtn = document.createElement('button');
             toggleBtn.id = 'toggleFailedDomains';
-            toggleBtn.className = 'px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center hidden';
+            toggleBtn.className = 'px-4 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center hidden';
             toggleBtn.innerHTML = `
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
