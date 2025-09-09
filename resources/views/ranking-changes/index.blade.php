@@ -61,7 +61,7 @@
         
         <div class="flex items-center space-x-2">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
-            <select id="filterField" 
+            <select id="filterField"
                     class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 <option value="">无过滤</option>
                 <option value="current_ranking" {{ $filterField == 'current_ranking' ? 'selected' : '' }}>排名 ≤</option>
@@ -71,12 +71,14 @@
                 <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
                 <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
                 <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
+                <option value="registered_after" {{ $filterField == 'registered_after' ? 'selected' : '' }}>注册晚于</option>
+                <option value="registered_before" {{ $filterField == 'registered_before' ? 'selected' : '' }}>注册早于</option>
                 </select>
-            <input type="number" 
+            <input type="{{ in_array($filterField, ['registered_after', 'registered_before']) ? 'date' : 'number' }}"
                    id="filterValue"
-                   placeholder="数值"
+                   placeholder="{{ in_array($filterField, ['registered_after', 'registered_before']) ? '选择日期' : '数值' }}"
                    value="{{ $filterValue }}"
-                   class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                   class="{{ in_array($filterField, ['registered_after', 'registered_before']) ? 'w-40' : 'w-20' }} rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
             <button id="applyFilter" 
                     class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                 应用
@@ -316,18 +318,35 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 过滤字段变化时更新占位符
-    document.getElementById('filterField').addEventListener('change', function() {
-        const filterValue = document.getElementById('filterValue');
-        
-        if (this.value === 'current_ranking') {
-            filterValue.placeholder = '排名值';
-        } else if (this.value) {
-            filterValue.placeholder = '变化值';
+    const filterField = document.getElementById('filterField');
+    const filterValue = document.getElementById('filterValue');
+
+    function updateFilterInput() {
+        if (filterField.value === 'registered_after' || filterField.value === 'registered_before') {
+            filterValue.type = 'date';
+            filterValue.placeholder = '选择日期';
+            filterValue.classList.remove('w-20');
+            filterValue.classList.add('w-40');
         } else {
-            filterValue.placeholder = '数值';
+            filterValue.type = 'number';
+            filterValue.classList.remove('w-40');
+            filterValue.classList.add('w-20');
+            if (filterField.value === 'current_ranking') {
+                filterValue.placeholder = '排名值';
+            } else if (filterField.value) {
+                filterValue.placeholder = '变化值';
+            } else {
+                filterValue.placeholder = '数值';
+            }
         }
+    }
+
+    filterField.addEventListener('change', function() {
+        updateFilterInput();
+        filterValue.value = '';
     });
+
+    updateFilterInput();
 });
 </script>
 @endpush
