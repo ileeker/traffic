@@ -52,6 +52,12 @@ class RankingChangeController extends Controller
             $query = RankingChange::with('websiteIntroduction')
                 ->whereDate('record_date', $today);
 
+            // 当需要基于注册时间排序或过滤时进行关联
+            if ($sortBy === 'registered_at' || in_array($filterField, ['registered_after', 'registered_before'])) {
+                $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
+                      ->select('ranking_changes.*');
+            }
+
             // 筛选逻辑
             if ($filterField && $filterValue !== null && $filterValue !== '') {
                 $filterFields = [
@@ -61,22 +67,29 @@ class RankingChangeController extends Controller
                     'biweek_change',
                     'triweek_change',
                     'month_change',
-                    'quarter_change'
+                    'quarter_change',
+                    'registered_after',
+                    'registered_before'
                 ];
-                
+
                 if (in_array($filterField, $filterFields)) {
-                    $filterValue = (int)$filterValue;
-                    
-                    if ($filterField === 'current_ranking') {
-                        // 使用索引友好的方式
-                        $query->where('current_ranking', '<=', $filterValue);
+                    if (in_array($filterField, ['registered_after', 'registered_before'])) {
+                        $operator = $filterField === 'registered_after' ? '>=' : '<=';
+                        $query->whereDate('website_introductions.registered_at', $operator, $filterValue);
                     } else {
-                        // 分别处理正负值，避免使用 ABS 函数
-                        if ($filterValue > 0) {
-                            $query->where(function($q) use ($filterField, $filterValue) {
-                                $q->whereBetween($filterField, [-999999, -$filterValue])
-                                  ->orWhereBetween($filterField, [$filterValue, 999999]);
-                            });
+                        $filterValue = (int)$filterValue;
+
+                        if ($filterField === 'current_ranking') {
+                            // 使用索引友好的方式
+                            $query->where('current_ranking', '<=', $filterValue);
+                        } else {
+                            // 分别处理正负值，避免使用 ABS 函数
+                            if ($filterValue > 0) {
+                                $query->where(function($q) use ($filterField, $filterValue) {
+                                    $q->whereBetween($filterField, [-999999, -$filterValue])
+                                      ->orWhereBetween($filterField, [$filterValue, 999999]);
+                                });
+                            }
                         }
                     }
                 }
@@ -89,10 +102,6 @@ class RankingChangeController extends Controller
                 // 直接使用索引
                 $query->orderBy('current_ranking', $sortOrder);
             } else if ($sortBy === 'registered_at') {
-                // 关联排序 - 需要 join
-                $query->leftJoin('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
-                    ->select('ranking_changes.*');
-                
                 // 使用 COALESCE 处理 NULL 值
                 $nullValue = $sortOrder === 'asc' ? '9999-12-31' : '1000-01-01';
                 $query->orderByRaw(
