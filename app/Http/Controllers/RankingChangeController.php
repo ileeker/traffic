@@ -61,16 +61,24 @@ class RankingChangeController extends Controller
                     'biweek_change',
                     'triweek_change',
                     'month_change',
-                    'quarter_change'
+                    'quarter_change',
+                    'registered_after'  // 新增注册日期筛选
                 ];
                 
                 if (in_array($filterField, $filterFields)) {
-                    $filterValue = (int)$filterValue;
-                    
-                    if ($filterField === 'current_ranking') {
-                        // 使用索引友好的方式
+                    if ($filterField === 'registered_after') {
+                        // 注册日期筛选
+                        // 需要 join website_introductions 表
+                        $query->whereHas('websiteIntroduction', function($q) use ($filterValue) {
+                            $q->whereDate('registered_at', '>=', $filterValue);
+                        });
+                    } elseif ($filterField === 'current_ranking') {
+                        // 排名筛选
+                        $filterValue = (int)$filterValue;
                         $query->where('current_ranking', '<=', $filterValue);
                     } else {
+                        // 变化值筛选
+                        $filterValue = (int)$filterValue;
                         // 分别处理正负值，避免使用 ABS 函数
                         if ($filterValue > 0) {
                             $query->where(function($q) use ($filterField, $filterValue) {

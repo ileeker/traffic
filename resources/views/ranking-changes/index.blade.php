@@ -71,12 +71,13 @@
                 <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
                 <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
                 <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
-                </select>
-            <input type="number" 
+                <option value="registered_after" {{ $filterField == 'registered_after' ? 'selected' : '' }}>注册日期 ≥</option>
+            </select>
+            <input type="{{ $filterField == 'registered_after' ? 'date' : 'number' }}" 
                    id="filterValue"
-                   placeholder="数值"
+                   placeholder="{{ $filterField == 'registered_after' ? '选择日期' : '数值' }}"
                    value="{{ $filterValue }}"
-                   class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
+                   class="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
             <button id="applyFilter" 
                     class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                 应用
@@ -113,7 +114,7 @@
                 <option value="month_change-asc" {{ $sortBy == 'month_change' && $sortOrder == 'asc' ? 'selected' : '' }}>月下降最多</option>
                 <option value="quarter_change-desc" {{ $sortBy == 'quarter_change' && $sortOrder == 'desc' ? 'selected' : '' }}>季度上升最多</option>
                 <option value="quarter_change-asc" {{ $sortBy == 'quarter_change' && $sortOrder == 'asc' ? 'selected' : '' }}>季度下降最多</option>
-                </select>
+            </select>
         </div>
     </div>
 </div>
@@ -316,19 +317,42 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 过滤字段变化时更新占位符
-    document.getElementById('filterField').addEventListener('change', function() {
-        const filterValue = document.getElementById('filterValue');
-        
-        if (this.value === 'current_ranking') {
-            filterValue.placeholder = '排名值';
-        } else if (this.value) {
-            filterValue.placeholder = '变化值';
+    // 过滤字段变化时更新输入框类型和占位符
+    const filterField = document.getElementById('filterField');
+    const filterValue = document.getElementById('filterValue');
+    
+    filterField.addEventListener('change', function() {
+        if (this.value === 'registered_after') {
+            // 切换到日期输入
+            filterValue.type = 'date';
+            filterValue.placeholder = '选择日期';
+            // 如果之前有数值，清空它
+            if (filterValue.value && !filterValue.value.includes('-')) {
+                filterValue.value = '';
+            }
         } else {
-            filterValue.placeholder = '数值';
+            // 切换到数字输入
+            filterValue.type = 'number';
+            // 如果之前有日期，清空它
+            if (filterValue.value && filterValue.value.includes('-')) {
+                filterValue.value = '';
+            }
+            
+            if (this.value === 'current_ranking') {
+                filterValue.placeholder = '排名值';
+            } else if (this.value) {
+                filterValue.placeholder = '变化值';
+            } else {
+                filterValue.placeholder = '数值';
+            }
         }
     });
+    
+    // 页面加载时检查初始状态
+    if (filterField.value === 'registered_after') {
+        filterValue.type = 'date';
+        filterValue.placeholder = '选择日期';
+    }
 });
 </script>
 @endpush
-
