@@ -180,12 +180,14 @@ class RankingChangeController extends Controller
         ";
         
         $countBindings = [$today];
+        
+        // 添加筛选条件到计数查询
         if (!empty($conditions)) {
             $countQuery .= " AND " . implode(" AND ", $conditions);
-            // 添加筛选条件的绑定值
-            array_shift($bindings); // 移除第一个 $today
-            $countBindings = array_merge($countBindings, $bindings);
-            $bindings = array_merge([$today], $bindings); // 恢复完整的 bindings
+            // 复制筛选条件的绑定值（不包括第一个 $today）
+            for ($i = 1; $i < count($bindings) - 2; $i++) { // -2 是因为最后两个是 LIMIT 和 OFFSET
+                $countBindings[] = $bindings[$i];
+            }
         }
         
         $total = DB::selectOne($countQuery, $countBindings)->total;
