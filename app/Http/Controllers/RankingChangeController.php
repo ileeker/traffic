@@ -53,8 +53,10 @@ class RankingChangeController extends Controller
                 ->whereDate('record_date', $today);
 
             // 筛选逻辑
+            // 筛选逻辑
             if ($filterField && $filterValue !== null && $filterValue !== '') {
-                $filterFields = [
+                // 数值筛选字段
+                $numericFilterFields = [
                     'current_ranking',
                     'daily_change',
                     'week_change',
@@ -64,7 +66,7 @@ class RankingChangeController extends Controller
                     'quarter_change'
                 ];
                 
-                if (in_array($filterField, $filterFields)) {
+                if (in_array($filterField, $numericFilterFields)) {
                     $filterValue = (int)$filterValue;
                     
                     if ($filterField === 'current_ranking') {
@@ -75,9 +77,25 @@ class RankingChangeController extends Controller
                         if ($filterValue > 0) {
                             $query->where(function($q) use ($filterField, $filterValue) {
                                 $q->whereBetween($filterField, [-999999, -$filterValue])
-                                  ->orWhereBetween($filterField, [$filterValue, 999999]);
+                                ->orWhereBetween($filterField, [$filterValue, 999999]);
                             });
                         }
+                    }
+                } 
+                // 注册日期筛选
+                elseif ($filterField === 'registered_after') {
+                    // 验证日期格式
+                    try {
+                        $filterDate = \Carbon\Carbon::parse($filterValue)->format('Y-m-d');
+                        
+                        // 需要 join website_introductions 表
+                        $query->join('website_introductions', 'ranking_changes.domain', '=', 'website_introductions.domain')
+                            ->where('website_introductions.registered_at', '>', $filterDate)
+                            ->select('ranking_changes.*'); // 确保只选择 ranking_changes 的字段
+                            
+                    } catch (\Exception $e) {
+                        // 日期格式不正确时忽略此筛选
+                        \Log::warning('Invalid date format in filter: ' . $filterValue);
                     }
                 }
             }
