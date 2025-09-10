@@ -127,9 +127,7 @@ class RankingChangeController extends Controller
                 rc.quarter_change,
                 rc.quarter_trend,
                 rc.record_date,
-                wi.registered_at,
-                wi.title,
-                wi.description
+                wi.registered_at
             FROM ranking_changes rc
             FORCE INDEX (idx_date_ranking_optimized)
             LEFT JOIN website_introductions wi 
