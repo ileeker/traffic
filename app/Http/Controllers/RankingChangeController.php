@@ -225,12 +225,10 @@ class RankingChangeController extends Controller
             $rankingChange->record_date = $item->record_date;
             
             // 手动设置关联数据（如果存在）
-            if ($item->title !== null || $item->registered_at !== null) {
+            if ($item->registered_at !== null) {
                 $websiteIntro = new \App\Models\WebsiteIntroduction();
                 $websiteIntro->domain = $item->domain;
                 $websiteIntro->registered_at = $item->registered_at;
-                $websiteIntro->title = $item->title;
-                $websiteIntro->description = $item->description;
                 
                 $rankingChange->setRelation('websiteIntroduction', $websiteIntro);
             }
