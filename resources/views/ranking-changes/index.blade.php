@@ -59,7 +59,6 @@
             </button>
         </div>
         
-        <!-- 在 @section('list_controls') 中的筛选部分，替换原有的 select 选项 -->
         <div class="flex items-center space-x-2">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
             <select id="filterField" 
@@ -72,23 +71,12 @@
                 <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
                 <option value="month_change" {{ $filterField == 'month_change' ? 'selected' : '' }}>月变化 ≥</option>
                 <option value="quarter_change" {{ $filterField == 'quarter_change' ? 'selected' : '' }}>季度变化 ≥</option>
-                <option value="registered_after" {{ $filterField == 'registered_after' ? 'selected' : '' }}>注册日期晚于</option>
-            </select>
-            
-            <!-- 根据筛选字段类型显示不同的输入框 -->
+                </select>
             <input type="number" 
-                id="filterValue"
-                placeholder="数值"
-                value="{{ $filterField != 'registered_after' ? $filterValue : '' }}"
-                class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
-                style="{{ $filterField == 'registered_after' ? 'display:none;' : '' }}">
-                
-            <input type="date" 
-                id="filterDate"
-                value="{{ $filterField == 'registered_after' ? $filterValue : '' }}"
-                class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
-                style="{{ $filterField != 'registered_after' ? 'display:none;' : '' }}">
-                
+                   id="filterValue"
+                   placeholder="数值"
+                   value="{{ $filterValue }}"
+                   class="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
             <button id="applyFilter" 
                     class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
                 应用
@@ -327,71 +315,19 @@
 
 @push('scripts')
 <script>
-// 替换原有的 @push('scripts') 部分
 document.addEventListener('DOMContentLoaded', function() {
-    const filterField = document.getElementById('filterField');
-    const filterValue = document.getElementById('filterValue');
-    const filterDate = document.getElementById('filterDate');
-    const applyFilter = document.getElementById('applyFilter');
-    const clearFilter = document.getElementById('clearFilter');
-    
-    // 过滤字段变化时更新占位符和输入框显示
-    filterField.addEventListener('change', function() {
-        const selectedField = this.value;
+    // 过滤字段变化时更新占位符
+    document.getElementById('filterField').addEventListener('change', function() {
+        const filterValue = document.getElementById('filterValue');
         
-        if (selectedField === 'registered_after') {
-            // 显示日期输入框，隐藏数值输入框
-            filterValue.style.display = 'none';
-            filterDate.style.display = 'block';
-            filterDate.placeholder = '选择日期';
-        } else if (selectedField === 'current_ranking') {
-            // 显示数值输入框，隐藏日期输入框
-            filterValue.style.display = 'block';
-            filterDate.style.display = 'none';
+        if (this.value === 'current_ranking') {
             filterValue.placeholder = '排名值';
-        } else if (selectedField) {
-            // 显示数值输入框，隐藏日期输入框
-            filterValue.style.display = 'block';
-            filterDate.style.display = 'none';
+        } else if (this.value) {
             filterValue.placeholder = '变化值';
         } else {
-            // 显示数值输入框，隐藏日期输入框
-            filterValue.style.display = 'block';
-            filterDate.style.display = 'none';
             filterValue.placeholder = '数值';
         }
     });
-    
-    // 应用筛选
-    applyFilter.addEventListener('click', function() {
-        const selectedField = filterField.value;
-        let filterVal = '';
-        
-        if (selectedField === 'registered_after') {
-            filterVal = filterDate.value;
-        } else {
-            filterVal = filterValue.value;
-        }
-        
-        if (selectedField && filterVal) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('filter_field', selectedField);
-            url.searchParams.set('filter_value', filterVal);
-            url.searchParams.delete('page'); // 重置到第一页
-            window.location.href = url.toString();
-        }
-    });
-    
-    // 清除筛选
-    if (clearFilter) {
-        clearFilter.addEventListener('click', function() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('filter_field');
-            url.searchParams.delete('filter_value');
-            url.searchParams.delete('page');
-            window.location.href = url.toString();
-        });
-    }
 });
 </script>
 @endpush
