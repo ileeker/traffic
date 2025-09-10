@@ -49,13 +49,14 @@ class RankingChangeController extends Controller
             }
 
             // 判断是否需要 JOIN website_introductions 表
-            // 重要：按 registered_at 排序或筛选都必须 JOIN
+            // 只要涉及 registered_at 的操作都需要 JOIN
             $needsJoin = ($sortBy === 'registered_at' || 
-                         $filterField === 'registered_after');
+                         $filterField === 'registered_after' ||
+                         $request->has('with_introduction'));
 
             if ($needsJoin) {
-                // 使用 JOIN 查询（支持 registered_at 排序和筛选）
-                $rankingChanges = $this->getJoinQuery(
+                // 使用优化的 JOIN 查询
+                $rankingChanges = $this->getOptimizedJoinQuery(
                     $today, 
                     $sortBy, 
                     $sortOrder, 
@@ -63,7 +64,7 @@ class RankingChangeController extends Controller
                     $filterValue
                 );
             } else {
-                // 使用简单查询（不需要 JOIN）
+                // 不需要 JOIN 的简单查询
                 $rankingChanges = $this->getSimpleQuery(
                     $today, 
                     $sortBy, 
@@ -101,81 +102,128 @@ class RankingChangeController extends Controller
     }
 
     /**
-     * JOIN 查询方法 - 用于需要 registered_at 的场景
+     * 优化的 JOIN 查询方法
      */
-    private function getJoinQuery($today, $sortBy, $sortOrder, $filterField, $filterValue)
+    private function getOptimizedJoinQuery($today, $sortBy, $sortOrder, $filterField, $filterValue)
     {
         $perPage = 100;
         
-        // 构建 JOIN 查询
-        $query = DB::table('ranking_changes as rc')
-            ->leftJoin('website_introductions as wi', 'rc.domain', '=', 'wi.domain')
-            ->select(
-                'rc.*',  // 选择所有 ranking_changes 字段
-                'wi.registered_at',
-                'wi.title',
-                'wi.description'
-            )
-            ->where('rc.record_date', $today);
-
-        // 应用筛选条件
+        // 使用优化的查询构建
+        $baseQuery = "
+            SELECT 
+                rc.id,
+                rc.domain,
+                rc.current_ranking,
+                rc.daily_change,
+                rc.daily_trend,
+                rc.week_change,
+                rc.week_trend,
+                rc.biweek_change,
+                rc.biweek_trend,
+                rc.triweek_change,
+                rc.triweek_trend,
+                rc.month_change,
+                rc.month_trend,
+                rc.quarter_change,
+                rc.quarter_trend,
+                rc.record_date,
+                wi.registered_at,
+                wi.title,
+                wi.description
+            FROM ranking_changes rc
+            FORCE INDEX (idx_date_ranking_optimized)
+            LEFT JOIN website_introductions wi 
+                FORCE INDEX (domain_unique)
+                ON rc.domain = wi.domain
+            WHERE rc.record_date = ?
+        ";
+        
+        $bindings = [$today];
+        $conditions = [];
+        
+        // 构建筛选条件
         if ($filterField && $filterValue !== null && $filterValue !== '') {
             if ($filterField === 'registered_after') {
-                // 注册日期筛选 - 直接在 JOIN 后的结果上筛选
-                $query->whereDate('wi.registered_at', '>=', $filterValue);
+                $conditions[] = "wi.registered_at >= ?";
+                $bindings[] = $filterValue;
             } elseif ($filterField === 'current_ranking') {
                 $filterValue = (int)$filterValue;
-                $query->where('rc.current_ranking', '<=', $filterValue);
+                $conditions[] = "rc.current_ranking <= ?";
+                $bindings[] = $filterValue;
             } elseif (in_array($filterField, ['daily_change', 'week_change', 'biweek_change', 'triweek_change', 'month_change', 'quarter_change'])) {
                 $filterValue = (int)$filterValue;
                 if ($filterValue > 0) {
-                    $query->where(function($q) use ($filterField, $filterValue) {
-                        $q->whereBetween("rc.{$filterField}", [-999999, -$filterValue])
-                          ->orWhereBetween("rc.{$filterField}", [$filterValue, 999999]);
-                    });
+                    $conditions[] = "(rc.{$filterField} BETWEEN ? AND ? OR rc.{$filterField} BETWEEN ? AND ?)";
+                    $bindings[] = -999999;
+                    $bindings[] = -$filterValue;
+                    $bindings[] = $filterValue;
+                    $bindings[] = 999999;
                 }
             }
         }
-
-        // 应用排序
-        if ($sortBy === 'registered_at') {
-            // 按注册日期排序，NULL 值放到最后
-            if ($sortOrder === 'asc') {
-                $query->orderByRaw('wi.registered_at IS NULL, wi.registered_at ASC');
-            } else {
-                $query->orderByRaw('wi.registered_at IS NULL, wi.registered_at DESC');
-            }
-        } elseif ($sortBy === 'current_ranking') {
-            $query->orderBy('rc.current_ranking', $sortOrder);
-        } elseif ($sortBy === 'domain') {
-            $query->orderBy('rc.domain', $sortOrder);
-        } elseif (in_array($sortBy, ['daily_change', 'week_change', 'biweek_change', 'triweek_change', 'month_change', 'quarter_change'])) {
-            // 变化字段排序
-            if ($sortOrder === 'desc') {
-                // 上升最多的优先（负数）
-                $query->orderByRaw("CASE WHEN rc.{$sortBy} < 0 THEN 0 ELSE 1 END, rc.{$sortBy} ASC");
-            } else {
-                // 下降最多的优先（正数）
-                $query->orderByRaw("CASE WHEN rc.{$sortBy} > 0 THEN 0 ELSE 1 END, rc.{$sortBy} DESC");
-            }
+        
+        // 添加筛选条件到查询
+        if (!empty($conditions)) {
+            $baseQuery .= " AND " . implode(" AND ", $conditions);
         }
-
-        // 执行分页查询
-        $paginator = $query->paginate($perPage);
-
-        // 将结果转换为 Eloquent 模型
-        $items = collect($paginator->items())->map(function ($item) {
+        
+        // 构建排序
+        $orderClause = $this->buildOrderClause($sortBy, $sortOrder, true);
+        $baseQuery .= " " . $orderClause;
+        
+        // 获取总数（用于分页）
+        $countQuery = "
+            SELECT COUNT(*) as total
+            FROM ranking_changes rc
+            LEFT JOIN website_introductions wi ON rc.domain = wi.domain
+            WHERE rc.record_date = ?
+        ";
+        
+        $countBindings = [$today];
+        if (!empty($conditions)) {
+            $countQuery .= " AND " . implode(" AND ", $conditions);
+            // 添加筛选条件的绑定值
+            array_shift($bindings); // 移除第一个 $today
+            $countBindings = array_merge($countBindings, $bindings);
+            $bindings = array_merge([$today], $bindings); // 恢复完整的 bindings
+        }
+        
+        $total = DB::selectOne($countQuery, $countBindings)->total;
+        
+        // 添加分页
+        $page = request()->get('page', 1);
+        $offset = ($page - 1) * $perPage;
+        $baseQuery .= " LIMIT ? OFFSET ?";
+        $bindings[] = $perPage;
+        $bindings[] = $offset;
+        
+        // 执行查询
+        $results = DB::select($baseQuery, $bindings);
+        
+        // 转换为 Eloquent 模型集合
+        $items = collect($results)->map(function ($item) {
             $rankingChange = new RankingChange();
             
-            // 填充所有属性
-            foreach (get_object_vars($item) as $key => $value) {
-                if (property_exists($rankingChange, $key)) {
-                    $rankingChange->{$key} = $value;
-                }
-            }
+            // 填充 ranking_changes 表的字段
+            $rankingChange->id = $item->id;
+            $rankingChange->domain = $item->domain;
+            $rankingChange->current_ranking = $item->current_ranking;
+            $rankingChange->daily_change = $item->daily_change;
+            $rankingChange->daily_trend = $item->daily_trend;
+            $rankingChange->week_change = $item->week_change;
+            $rankingChange->week_trend = $item->week_trend;
+            $rankingChange->biweek_change = $item->biweek_change;
+            $rankingChange->biweek_trend = $item->biweek_trend;
+            $rankingChange->triweek_change = $item->triweek_change;
+            $rankingChange->triweek_trend = $item->triweek_trend;
+            $rankingChange->month_change = $item->month_change;
+            $rankingChange->month_trend = $item->month_trend;
+            $rankingChange->quarter_change = $item->quarter_change;
+            $rankingChange->quarter_trend = $item->quarter_trend;
+            $rankingChange->record_date = $item->record_date;
             
-            // 设置关联（如果有数据）
-            if ($item->registered_at !== null || $item->title !== null) {
+            // 手动设置关联数据（如果存在）
+            if ($item->title !== null || $item->registered_at !== null) {
                 $websiteIntro = new \App\Models\WebsiteIntroduction();
                 $websiteIntro->domain = $item->domain;
                 $websiteIntro->registered_at = $item->registered_at;
@@ -188,31 +236,32 @@ class RankingChangeController extends Controller
             return $rankingChange;
         });
 
-        // 创建新的分页器
+        // 创建分页器
         $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
             $items,
-            $paginator->total(),
-            $paginator->perPage(),
-            $paginator->currentPage(),
+            $total,
+            $perPage,
+            $page,
             ['path' => request()->url()]
         );
 
+        // 保持查询字符串
         $paginator->withQueryString();
 
         return $paginator;
     }
 
     /**
-     * 简单查询方法 - 不需要 JOIN 的场景
+     * 简单查询方法（不需要 JOIN）
      */
     private function getSimpleQuery($today, $sortBy, $sortOrder, $filterField, $filterValue)
     {
         $perPage = 100;
 
-        // 使用 Eloquent 查询
+        // 使用 Eloquent 查询构建器
         $query = RankingChange::where('record_date', $today);
 
-        // 应用筛选条件（不包括 registered_after，因为那需要 JOIN）
+        // 应用筛选条件（简单查询不支持 registered_after）
         if ($filterField && $filterValue !== null && $filterValue !== '') {
             if ($filterField === 'current_ranking') {
                 $filterValue = (int)$filterValue;
@@ -228,13 +277,13 @@ class RankingChangeController extends Controller
             }
         }
 
-        // 应用排序（不包括 registered_at，因为那需要 JOIN）
-        if ($sortBy === 'current_ranking') {
-            $query->orderBy('current_ranking', $sortOrder);
-        } elseif ($sortBy === 'domain') {
+        // 应用排序（简单查询不支持 registered_at 排序）
+        if ($sortBy === 'domain') {
             $query->orderBy('domain', $sortOrder);
+        } elseif ($sortBy === 'current_ranking') {
+            $query->orderBy('current_ranking', $sortOrder);
         } elseif (in_array($sortBy, ['daily_change', 'week_change', 'biweek_change', 'triweek_change', 'month_change', 'quarter_change'])) {
-            // 变化字段排序
+            // 变化字段排序优化
             if ($sortOrder === 'desc') {
                 // 上升最多的优先（负数）
                 $query->orderByRaw("CASE WHEN {$sortBy} < 0 THEN 0 ELSE 1 END, {$sortBy} ASC");
@@ -244,15 +293,54 @@ class RankingChangeController extends Controller
             }
         }
 
-        // 分页并延迟加载关联
+        // 分页
         $paginator = $query->paginate($perPage);
         
-        // 加载 websiteIntroduction 关联（用于显示，但不用于排序）
-        $paginator->load('websiteIntroduction');
-
+        // 保持查询字符串
         $paginator->withQueryString();
 
         return $paginator;
+    }
+
+    /**
+     * 构建排序子句
+     */
+    private function buildOrderClause($sortBy, $sortOrder, $isJoinQuery)
+    {
+        $orderClause = "ORDER BY ";
+        
+        if ($sortBy === 'domain') {
+            $field = $isJoinQuery ? 'rc.domain' : 'domain';
+            $orderClause .= "{$field} {$sortOrder}";
+        } elseif ($sortBy === 'current_ranking') {
+            $field = $isJoinQuery ? 'rc.current_ranking' : 'current_ranking';
+            $orderClause .= "{$field} {$sortOrder}";
+        } elseif ($sortBy === 'registered_at') {
+            if ($isJoinQuery) {
+                // 处理 NULL 值
+                $nullValue = $sortOrder === 'asc' ? '9999-12-31' : '1000-01-01';
+                $orderClause .= "COALESCE(wi.registered_at, '{$nullValue}') {$sortOrder}";
+            } else {
+                // 简单查询不支持 registered_at 排序，使用默认排序
+                $orderClause .= "current_ranking ASC";
+            }
+        } elseif (in_array($sortBy, ['daily_change', 'week_change', 'biweek_change', 'triweek_change', 'month_change', 'quarter_change'])) {
+            $field = $isJoinQuery ? "rc.{$sortBy}" : $sortBy;
+            
+            if ($sortOrder === 'desc') {
+                // 上升最多的优先（负数）
+                $orderClause .= "CASE WHEN {$field} < 0 THEN 0 ELSE 1 END, {$field} ASC";
+            } else {
+                // 下降最多的优先（正数）
+                $orderClause .= "CASE WHEN {$field} > 0 THEN 0 ELSE 1 END, {$field} DESC";
+            }
+        } else {
+            // 默认排序
+            $field = $isJoinQuery ? 'rc.current_ranking' : 'current_ranking';
+            $orderClause .= "{$field} ASC";
+        }
+        
+        return $orderClause;
     }
     
     /**
