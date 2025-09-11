@@ -267,7 +267,7 @@ class DomainController extends Controller
 
             // 分页查询
             if ($needsJoin) {
-                $domains = $query->paginate(25);
+                $domains = $query->paginate(100);
                 
                 // 手动加载关联关系 (因为 DB 查询不会自动创建 Eloquent 模型)
                 $domainNames = collect($domains->items())->pluck('domain')->toArray();
@@ -289,7 +289,7 @@ class DomainController extends Controller
                         'domain', 'current_emv', 'ts_direct', 'ts_search',
                         'ts_referrals', 'ts_social', 'ts_paid_referrals', 'ts_mail'
                     ])
-                    ->paginate(25)
+                    ->paginate(100)
                     ->withQueryString();
             }
             
