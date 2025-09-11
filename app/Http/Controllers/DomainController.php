@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\SimilarwebDomain;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class DomainController extends Controller
 {
