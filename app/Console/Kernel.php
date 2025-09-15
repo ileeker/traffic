@@ -16,6 +16,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        // 每天凌晨2点执行同步命令
+        $schedule->command('sync:new-domain-rankings')
+                 ->dailyAt('04:00')
+                 ->withoutOverlapping()  // 防止重复执行
+                 ->runInBackground();    // 后台运行
     }
 
     /**
