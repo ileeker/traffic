@@ -36,17 +36,13 @@ return new class extends Migration
             
             $table->datetime('registered_at')->nullable()->comment('域名注册日期');
             $table->boolean('is_visible')->nullable()->comment('是否显示');
-            $table->string('category', 100)->nullable()->comment('网站类别');
-            $table->string('language', 50)->nullable()->comment('网站语言');
-            $table->text('introduction')->nullable()->comment('网站介绍');
+            $table->json('metadata')->nullable()->comment('元数据(包含类别、语言、介绍等)');
             
             $table->timestamps();
             
             // 添加索引
             $table->index('current_ranking');
             $table->index('is_visible');
-            $table->index('category');
-            $table->index('language');
             $table->index('registered_at');
             $table->index(['is_visible', 'current_ranking']);
         });

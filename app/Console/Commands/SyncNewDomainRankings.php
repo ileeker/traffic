@@ -86,9 +86,9 @@ class SyncNewDomainRankings extends Command
                             'triweek_trend' => $domainData->triweek_trend,
                             'registered_at' => $domainData->registered_at,
                             'is_visible' => null,
-                            'category' => null,
-                            'language' => null,
-                            'introduction' => $domainData->intro,
+                            'metadata' => [
+                                'introduction' => $domainData->intro,
+                            ],
                         ]);
                     }
                     $insertCount++;

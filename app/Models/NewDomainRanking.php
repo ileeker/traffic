@@ -24,14 +24,13 @@ class NewDomainRanking extends Model
         'triweek_trend',
         'registered_at',
         'is_visible',
-        'category',
-        'language',
-        'introduction',
+        'metadata',
     ];
 
     protected $casts = [
         'registered_at' => 'datetime',
         'is_visible' => 'boolean',
+        'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
