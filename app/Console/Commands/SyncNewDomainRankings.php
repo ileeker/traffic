@@ -105,9 +105,7 @@ class SyncNewDomainRankings extends Command
                             'biweek_change' => $domainData->biweek_change,
                             'biweek_trend' => $domainData->biweek_trend,
                             'triweek_change' => $domainData->triweek_change,
-                            'triweek_trend' => $domainData->triweek_trend,
-                            'registered_at' => $domainData->registered_at,
-                            'introduction' => $domainData->intro,
+                            'triweek_trend' => $domainData->triweek_trend
                         ]);
                     }
                     $updateCount++;
