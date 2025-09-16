@@ -4,8 +4,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\RankingChangeController;
 use App\Http\Controllers\SimilarwebChangeController;
+use App\Http\Controllers\DomainRankingController;
 use Illuminate\Support\Facades\Route;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -54,6 +54,9 @@ Route::middleware('auth')->group(function () {
         // EMV变化列表页面
         Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
     });
+
+    Route::get('/newdomains', [DomainRankingController::class, 'index'])->name('domains.index');
+
 
 });
 
