@@ -55,7 +55,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
     });
 
-    Route::get('/newdomains', [DomainRankingController::class, 'index'])->name('domains.index');
+    // 域名排名路由
+    Route::prefix('domain-rankings')->name('domain-rankings.')->group(function () {
+        Route::get('/', [DomainRankingController::class, 'index'])->name('index');
+        Route::get('/{id}', [DomainRankingController::class, 'show'])->name('show');
+    });
 
 
 });
