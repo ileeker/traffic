@@ -185,7 +185,7 @@ class SyncNewDomainRankings extends Command
                 'wi.intro'
             ])
             ->where('d.record_date', $today->toDateString())
-            ->where('d.current_ranking', '<=', 600000)
+            ->where('d.current_ranking', '<=', 900000)
             ->where('wi.registered_at', '>=', $sixtyDaysAgo->toDateString())
             ->whereNotNull('wi.registered_at')
             ->get();
