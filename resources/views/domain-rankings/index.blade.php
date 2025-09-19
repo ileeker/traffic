@@ -68,6 +68,17 @@
             word-break: break-all;
         }
         
+        .domain-link {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .domain-link:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        
         .domain-description {
             font-size: 12px;
             color: #6c757d;
@@ -221,7 +232,6 @@
                                     @endif
                                 </a>
                             </th>
-                            <th style="width: 80px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -236,7 +246,9 @@
                                 </td>
                                 <td class="domain-cell">
                                     <div class="domain-main">
-                                        {{ $ranking->domain }}
+                                        <a href="https://{{ $ranking->domain }}" target="_blank" rel="noopener noreferrer" class="domain-link">
+                                            {{ $ranking->domain }}
+                                        </a>
                                     </div>
                                     <div class="domain-description">
                                         @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
@@ -246,7 +258,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td>
+                                <td style="text-align: left;">
                                     @if($ranking->metadata && isset($ranking->metadata['category']))
                                         <span class="badge bg-secondary">{{ $ranking->metadata['category'] }}</span>
                                     @else
@@ -311,15 +323,10 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <button class="btn-view" onclick="viewDomain('{{ $ranking->domain }}')">
-                                        查看
-                                    </button>
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-4">
                                     <i class="fas fa-info-circle"></i> 暂无数据
                                 </td>
                             </tr>
@@ -341,11 +348,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function viewDomain(domain) {
-            // 这里可以添加查看域名详情的逻辑
-            console.log('查看域名:', domain);
-            // 例如：window.open('/domain/' + domain, '_blank');
-        }
+        // 页面已经通过链接直接跳转到目标网站，无需额外的JavaScript功能
     </script>
 </body>
 </html>
