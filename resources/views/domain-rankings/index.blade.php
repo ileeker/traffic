@@ -1,62 +1,3 @@
-@php
-// 辅助函数：安全读取排名数据字段，处理别名和默认值
-function getRankingField($ranking, $field, $default = '--') {
-    $fieldMappings = [
-        'current_ranking' => ['current_ranking', 'current_rank'],
-        'daily_change' => ['daily_change', 'day_change', 'delta_day'],
-        'weekly_change' => ['weekly_change', 'week_change', 'delta_week'], 
-        'biweekly_change' => ['biweekly_change', 'two_weeks_change', 'delta_2w'],
-        'three_weeks_change' => ['three_weeks_change', 'three_week_change', 'delta_3w'],
-        'category' => ['category'],
-        'language' => ['language'],
-        'description_zh' => ['description_zh']
-    ];
-    
-    // 对于变化值字段，默认值应该是0而不是--
-    $changeFields = ['daily_change', 'weekly_change', 'biweekly_change', 'three_weeks_change'];
-    if (in_array($field, $changeFields)) {
-        $default = 0;
-    }
-    
-    // 如果是metadata字段
-    if (in_array($field, ['category', 'language', 'description_zh'])) {
-        if (!isset($ranking->metadata) || !is_array($ranking->metadata)) {
-            return $field === 'description_zh' ? '' : $default;
-        }
-        
-        foreach ($fieldMappings[$field] as $alias) {
-            if (isset($ranking->metadata[$alias]) && $ranking->metadata[$alias] !== null && $ranking->metadata[$alias] !== '') {
-                return $ranking->metadata[$alias];
-            }
-        }
-        return $field === 'description_zh' ? '' : $default;
-    }
-    
-    // 对于直接属性字段
-    if (isset($fieldMappings[$field])) {
-        foreach ($fieldMappings[$field] as $alias) {
-            if (isset($ranking->$alias) && $ranking->$alias !== null && $ranking->$alias !== '') {
-                return $ranking->$alias;
-            }
-        }
-    }
-    
-    return $default;
-}
-
-// 格式化变化值显示
-function formatChange($change) {
-    $change = (float)$change;
-    if ($change > 0) {
-        return '<span class="trend-up">↑ +' . abs($change) . '</span>';
-    } elseif ($change < 0) {
-        return '<span class="trend-down">↓ -' . abs($change) . '</span>';
-    } else {
-        return '<span class="trend-stable">→ 0</span>';
-    }
-}
-@endphp
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -170,6 +111,7 @@ function formatChange($change) {
         }
         
         .language-cell {
+            text-align: left !important;
             min-width: 80px;
         }
         
@@ -309,7 +251,7 @@ function formatChange($change) {
                             {{-- 第一行：主要数据 --}}
                             <tr class="ranking-row-main">
                                 <td class="ranking-cell">
-                                    @php $currentRanking = getRankingField($ranking, 'current_ranking'); @endphp
+                                    @php $currentRanking = $getRankingField($ranking, 'current_ranking'); @endphp
                                     @if($currentRanking !== '--')
                                         {{ number_format($currentRanking) }}
                                     @else
@@ -322,7 +264,7 @@ function formatChange($change) {
                                     </a>
                                 </td>
                                 <td class="category-cell">
-                                    @php $category = getRankingField($ranking, 'category'); @endphp
+                                    @php $category = $getRankingField($ranking, 'category'); @endphp
                                     @if($category !== '--')
                                         <span class="badge bg-secondary">{{ $category }}</span>
                                     @else
@@ -330,7 +272,7 @@ function formatChange($change) {
                                     @endif
                                 </td>
                                 <td class="language-cell">
-                                    @php $language = getRankingField($ranking, 'language'); @endphp
+                                    @php $language = $getRankingField($ranking, 'language'); @endphp
                                     @if($language !== '--')
                                         <span class="badge bg-info">{{ $language }}</span>
                                     @else
@@ -338,26 +280,26 @@ function formatChange($change) {
                                     @endif
                                 </td>
                                 <td class="change-cell">
-                                    @php $dailyChange = getRankingField($ranking, 'daily_change'); @endphp
-                                    {!! formatChange($dailyChange) !!}
+                                    @php $dailyChange = $getRankingField($ranking, 'daily_change'); @endphp
+                                    {!! $formatChange($dailyChange) !!}
                                 </td>
                                 <td class="change-cell">
-                                    @php $weeklyChange = getRankingField($ranking, 'weekly_change'); @endphp
-                                    {!! formatChange($weeklyChange) !!}
+                                    @php $weeklyChange = $getRankingField($ranking, 'weekly_change'); @endphp
+                                    {!! $formatChange($weeklyChange) !!}
                                 </td>
                                 <td class="change-cell">
-                                    @php $biweeklyChange = getRankingField($ranking, 'biweekly_change'); @endphp
-                                    {!! formatChange($biweeklyChange) !!}
+                                    @php $biweeklyChange = $getRankingField($ranking, 'biweekly_change'); @endphp
+                                    {!! $formatChange($biweeklyChange) !!}
                                 </td>
                                 <td class="change-cell">
-                                    @php $threeWeeksChange = getRankingField($ranking, 'three_weeks_change'); @endphp
-                                    {!! formatChange($threeWeeksChange) !!}
+                                    @php $threeWeeksChange = $getRankingField($ranking, 'three_weeks_change'); @endphp
+                                    {!! $formatChange($threeWeeksChange) !!}
                                 </td>
                             </tr>
                             {{-- 第二行：描述信息 --}}
                             <tr class="ranking-row-desc">
                                 <td colspan="8">
-                                    @php $description = getRankingField($ranking, 'description_zh'); @endphp
+                                    @php $description = $getRankingField($ranking, 'description_zh'); @endphp
                                     @if($description !== '')
                                         <strong>描述：</strong>{{ $description }}
                                     @else
