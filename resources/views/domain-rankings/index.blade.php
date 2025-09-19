@@ -1,3 +1,62 @@
+@php
+// 辅助函数：安全读取排名数据字段，处理别名和默认值
+function getRankingField($ranking, $field, $default = '--') {
+    $fieldMappings = [
+        'current_ranking' => ['current_ranking', 'current_rank'],
+        'daily_change' => ['daily_change', 'day_change', 'delta_day'],
+        'weekly_change' => ['weekly_change', 'week_change', 'delta_week'], 
+        'biweekly_change' => ['biweekly_change', 'two_weeks_change', 'delta_2w'],
+        'three_weeks_change' => ['three_weeks_change', 'three_week_change', 'delta_3w'],
+        'category' => ['category'],
+        'language' => ['language'],
+        'description_zh' => ['description_zh']
+    ];
+    
+    // 对于变化值字段，默认值应该是0而不是--
+    $changeFields = ['daily_change', 'weekly_change', 'biweekly_change', 'three_weeks_change'];
+    if (in_array($field, $changeFields)) {
+        $default = 0;
+    }
+    
+    // 如果是metadata字段
+    if (in_array($field, ['category', 'language', 'description_zh'])) {
+        if (!isset($ranking->metadata) || !is_array($ranking->metadata)) {
+            return $field === 'description_zh' ? '' : $default;
+        }
+        
+        foreach ($fieldMappings[$field] as $alias) {
+            if (isset($ranking->metadata[$alias]) && $ranking->metadata[$alias] !== null && $ranking->metadata[$alias] !== '') {
+                return $ranking->metadata[$alias];
+            }
+        }
+        return $field === 'description_zh' ? '' : $default;
+    }
+    
+    // 对于直接属性字段
+    if (isset($fieldMappings[$field])) {
+        foreach ($fieldMappings[$field] as $alias) {
+            if (isset($ranking->$alias) && $ranking->$alias !== null && $ranking->$alias !== '') {
+                return $ranking->$alias;
+            }
+        }
+    }
+    
+    return $default;
+}
+
+// 格式化变化值显示
+function formatChange($change) {
+    $change = (float)$change;
+    if ($change > 0) {
+        return '<span class="trend-up">↑ +' . abs($change) . '</span>';
+    } elseif ($change < 0) {
+        return '<span class="trend-down">↓ -' . abs($change) . '</span>';
+    } else {
+        return '<span class="trend-stable">→ 0</span>';
+    }
+}
+@endphp
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -51,21 +110,47 @@
         .table tbody td {
             vertical-align: middle;
             text-align: center;
+            border-bottom: none;
+            padding: 8px 6px;
+        }
+        
+        /* 两行布局样式 */
+        .ranking-row {
             border-bottom: 1px solid #dee2e6;
+        }
+        
+        .ranking-row-main {
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .ranking-row-desc {
+            background-color: #f8f9fb;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .ranking-row-desc td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.5;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+        }
+        
+        .ranking-cell {
+            font-weight: 700;
+            font-size: 16px;
+            color: #2c3e50;
+            min-width: 80px;
         }
         
         .domain-cell {
             text-align: left !important;
-            min-width: 300px;
-            padding: 12px 8px;
-        }
-        
-        .domain-main {
+            min-width: 200px;
             font-weight: 600;
-            font-size: 14px;
             color: #2c3e50;
-            margin-bottom: 4px;
-            word-break: break-all;
         }
         
         .domain-link {
@@ -79,19 +164,18 @@
             text-decoration: underline;
         }
         
-        .domain-description {
-            font-size: 12px;
-            color: #6c757d;
-            line-height: 1.4;
-            word-wrap: break-word;
-            word-break: break-word;
-            hyphens: auto;
+        .category-cell {
+            text-align: left !important;
+            min-width: 100px;
         }
         
-        .ranking-cell {
-            font-weight: 700;
-            font-size: 16px;
-            color: #2c3e50;
+        .language-cell {
+            min-width: 80px;
+        }
+        
+        .change-cell {
+            min-width: 60px;
+            font-size: 12px;
         }
         
         .trend-up {
@@ -184,9 +268,9 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th style="width: 120px;">
+                            <th style="width: 80px;">
                                 <a href="?sort=current_ranking&direction={{ ($sortField ?? '') === 'current_ranking' && ($sortDirection ?? 'asc') === 'asc' ? 'desc' : 'asc' }}" class="sort-link">
-                                    当前排名
+                                    排名
                                     @if(($sortField ?? '') === 'current_ranking')
                                         @if(($sortDirection ?? 'asc') === 'asc')
                                             ↑
@@ -198,9 +282,9 @@
                                     @endif
                                 </a>
                             </th>
-                            <th style="width: 300px;">
+                            <th style="width: 200px;">
                                 <a href="?sort=domain&direction={{ ($sortField ?? '') === 'domain' && ($sortDirection ?? 'asc') === 'asc' ? 'desc' : 'asc' }}" class="sort-link">
-                                    域名 & 描述
+                                    域名
                                     @if(($sortField ?? '') === 'domain')
                                         @if(($sortDirection ?? 'asc') === 'asc')
                                             ↑
@@ -212,121 +296,78 @@
                                     @endif
                                 </a>
                             </th>
-                            <th style="width: 80px;">类别</th>
+                            <th style="width: 100px;">分类</th>
                             <th style="width: 80px;">语言</th>
-                            <th style="width: 100px;">日变化</th>
-                            <th style="width: 100px;">周变化</th>
-                            <th style="width: 100px;">两周变化</th>
-                            <th style="width: 100px;">三周变化</th>
-                            <th style="width: 120px;">
-                                <a href="?sort=registered_at&direction={{ ($sortField ?? '') === 'registered_at' && ($sortDirection ?? 'asc') === 'asc' ? 'desc' : 'asc' }}" class="sort-link">
-                                    注册时间
-                                    @if(($sortField ?? '') === 'registered_at')
-                                        @if(($sortDirection ?? 'asc') === 'asc')
-                                            ↑
-                                        @else
-                                            ↓
-                                        @endif
-                                    @else
-                                        ↕
-                                    @endif
-                                </a>
-                            </th>
+                            <th style="width: 60px;">D</th>
+                            <th style="width: 60px;">W</th>
+                            <th style="width: 60px;">2W</th>
+                            <th style="width: 60px;">3W</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($rankings as $ranking)
-                            <tr>
+                            {{-- 第一行：主要数据 --}}
+                            <tr class="ranking-row-main">
                                 <td class="ranking-cell">
-                                    @if($ranking->current_ranking)
-                                        {{ number_format($ranking->current_ranking) }}
+                                    @php $currentRanking = getRankingField($ranking, 'current_ranking'); @endphp
+                                    @if($currentRanking !== '--')
+                                        {{ number_format($currentRanking) }}
                                     @else
                                         <span class="text-muted">N/A</span>
                                     @endif
                                 </td>
                                 <td class="domain-cell">
-                                    <div class="domain-main">
-                                        <a href="https://{{ $ranking->domain }}" target="_blank" rel="noopener noreferrer" class="domain-link">
-                                            {{ $ranking->domain }}
-                                        </a>
-                                    </div>
-                                    <div class="domain-description">
-                                        @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
-                                            {{ $ranking->metadata['description_zh'] }}
-                                        @else
-                                            <span class="text-muted">暂无描述</span>
-                                        @endif
-                                    </div>
+                                    <a href="https://{{ $ranking->domain }}" target="_blank" rel="noopener noreferrer" class="domain-link">
+                                        {{ $ranking->domain }}
+                                    </a>
                                 </td>
-                                <td style="text-align: left;">
-                                    @if($ranking->metadata && isset($ranking->metadata['category']))
-                                        <span class="badge bg-secondary">{{ $ranking->metadata['category'] }}</span>
+                                <td class="category-cell">
+                                    @php $category = getRankingField($ranking, 'category'); @endphp
+                                    @if($category !== '--')
+                                        <span class="badge bg-secondary">{{ $category }}</span>
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <span class="text-muted">--</span>
                                     @endif
                                 </td>
-                                <td>
-                                    @if($ranking->metadata && isset($ranking->metadata['language']))
-                                        <span class="badge bg-info">{{ $ranking->metadata['language'] }}</span>
+                                <td class="language-cell">
+                                    @php $language = getRankingField($ranking, 'language'); @endphp
+                                    @if($language !== '--')
+                                        <span class="badge bg-info">{{ $language }}</span>
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <span class="text-muted">--</span>
                                     @endif
                                 </td>
-                                <td>
-                                    @if($ranking->daily_trend === 'up')
-                                        <span class="trend-up">↑ +{{ abs($ranking->daily_change ?? 0) }}</span>
-                                    @elseif($ranking->daily_trend === 'down')
-                                        <span class="trend-down">↓ -{{ abs($ranking->daily_change ?? 0) }}</span>
-                                    @elseif($ranking->daily_trend === 'stable')
-                                        <span class="trend-stable">→ 0</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                <td class="change-cell">
+                                    @php $dailyChange = getRankingField($ranking, 'daily_change'); @endphp
+                                    {!! formatChange($dailyChange) !!}
                                 </td>
-                                <td>
-                                    @if($ranking->week_trend === 'up')
-                                        <span class="trend-up">↑ +{{ abs($ranking->week_change ?? 0) }}</span>
-                                    @elseif($ranking->week_trend === 'down')
-                                        <span class="trend-down">↓ -{{ abs($ranking->week_change ?? 0) }}</span>
-                                    @elseif($ranking->week_trend === 'stable')
-                                        <span class="trend-stable">→ 0</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                <td class="change-cell">
+                                    @php $weeklyChange = getRankingField($ranking, 'weekly_change'); @endphp
+                                    {!! formatChange($weeklyChange) !!}
                                 </td>
-                                <td>
-                                    @if($ranking->biweek_trend === 'up')
-                                        <span class="trend-up">↑ +{{ abs($ranking->biweek_change ?? 0) }}</span>
-                                    @elseif($ranking->biweek_trend === 'down')
-                                        <span class="trend-down">↓ -{{ abs($ranking->biweek_change ?? 0) }}</span>
-                                    @elseif($ranking->biweek_trend === 'stable')
-                                        <span class="trend-stable">→ 0</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                <td class="change-cell">
+                                    @php $biweeklyChange = getRankingField($ranking, 'biweekly_change'); @endphp
+                                    {!! formatChange($biweeklyChange) !!}
                                 </td>
-                                <td>
-                                    @if($ranking->triweek_trend === 'up')
-                                        <span class="trend-up">↑ +{{ abs($ranking->triweek_change ?? 0) }}</span>
-                                    @elseif($ranking->triweek_trend === 'down')
-                                        <span class="trend-down">↓ -{{ abs($ranking->triweek_change ?? 0) }}</span>
-                                    @elseif($ranking->triweek_trend === 'stable')
-                                        <span class="trend-stable">→ 0</span>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
+                                <td class="change-cell">
+                                    @php $threeWeeksChange = getRankingField($ranking, 'three_weeks_change'); @endphp
+                                    {!! formatChange($threeWeeksChange) !!}
                                 </td>
-                                <td>
-                                    @if($ranking->registered_at)
-                                        {{ $ranking->registered_at->format('Y-m-d') }}
+                            </tr>
+                            {{-- 第二行：描述信息 --}}
+                            <tr class="ranking-row-desc">
+                                <td colspan="8">
+                                    @php $description = getRankingField($ranking, 'description_zh'); @endphp
+                                    @if($description !== '')
+                                        <strong>描述：</strong>{{ $description }}
                                     @else
-                                        <span class="text-muted">-</span>
+                                        <span class="text-muted"><strong>描述：</strong>暂无描述信息</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">
+                                <td colspan="8" class="text-center text-muted py-4">
                                     <i class="fas fa-info-circle"></i> 暂无数据
                                 </td>
                             </tr>
