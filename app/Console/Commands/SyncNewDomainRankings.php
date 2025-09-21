@@ -39,7 +39,7 @@ class SyncNewDomainRankings extends Command
         $sixtyDaysAgo = Carbon::today()->subDays(90);
 
         $this->info("开始同步新域名排名数据...");
-        $this->info("筛选条件: record_date = {$today->toDateString()}, ranking ≤ 500000, registered_at 在 {$sixtyDaysAgo->toDateString()} 到 {$today->toDateString()} 之间");
+        $this->info("筛选条件: record_date = {$today->toDateString()}, ranking ≤ 400000, registered_at 在 {$sixtyDaysAgo->toDateString()} 到 {$today->toDateString()} 之间");
 
         if ($isDryRun) {
             $this->warn("【模拟运行模式】- 不会实际修改数据库");
@@ -185,7 +185,7 @@ class SyncNewDomainRankings extends Command
                 'wi.intro'
             ])
             ->where('d.record_date', $today->toDateString())
-            ->where('d.current_ranking', '<=', 500000)
+            ->where('d.current_ranking', '<=', 400000)
             ->where('wi.registered_at', '>=', $sixtyDaysAgo->toDateString())
             ->whereNotNull('wi.registered_at')
             ->get();
