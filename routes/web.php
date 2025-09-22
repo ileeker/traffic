@@ -51,10 +51,6 @@ Route::middleware('auth')->group(function () {
     });
 
     // Similarweb EMV变化相关路由
-    // Route::prefix('similarweb-changes')->name('similarweb-changes.')->group(function () {
-    //     // EMV变化列表页面
-    //     Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
-    // });
     Route::get('/similarweb-changes', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
 
     // 新注册域名的排名路由
