@@ -120,7 +120,7 @@ class DomainController extends Controller
                 }
             }
 
-            return view('domains.detail', compact(
+            return view('domain.detail', compact(
                 'results',
                 'foundDomains', 
                 'notFoundDomains',
