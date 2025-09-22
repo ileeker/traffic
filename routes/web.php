@@ -51,19 +51,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Similarweb EMV变化相关路由
-    Route::prefix('similarweb-changes')->name('similarweb-changes.')->group(function () {
-        // EMV变化列表页面
-        Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
-    });
+    // Route::prefix('similarweb-changes')->name('similarweb-changes.')->group(function () {
+    //     // EMV变化列表页面
+    //     Route::get('/', [SimilarwebChangeController::class, 'index'])->name('index');
+    // });
+    Route::get('/similarweb-changes', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
 
     // 新注册域名的排名路由
     Route::get('/new-domain-ranking', [NewDomainRankingController::class, 'index'])->name('new.domain.ranking');
- 
-    Route::prefix('domain-rankings')->name('domain-rankings.')->group(function () {
-        Route::get('/', [DomainRankingController::class, 'index'])->name('index');
-        Route::get('/{id}', [DomainRankingController::class, 'show'])->name('show');
-    });
-
 
 });
 
