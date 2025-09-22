@@ -31,7 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // 详细页面路由
+    // 域名详细页面路由
     Route::get('/domain/{domain}', [DomainController::class, 'getDomainDetail'])->name('domain.ranking');
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
     
@@ -44,11 +44,7 @@ Route::middleware('auth')->group(function () {
     // Similarweb显示指定分类下的所有域名
     Route::get('/similarweb-categories/{category}', [SimilarwebAllController::class, 'showCategoryDomains'])->name('domains.category.domains');
     
-    // 排名变化相关路由
-    // Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
-    //     // 排名变化列表页面
-    //     Route::get('/', [RankingChangeController::class, 'index'])->name('index');
-    // });
+    // Tranco排名变化相关路由
     Route::get('/tranco-ranking-change', [TrancoChangeController::class, 'index'])->name('ranking-changes.index');
 
     // Similarweb EMV变化相关路由

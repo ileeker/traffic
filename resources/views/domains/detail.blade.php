@@ -18,7 +18,7 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 批量域名查询结果
             </h2>
-            <a href="{{ route('domains.ranking') }}" 
+            <a href="{{ route('domains.detail') }}" 
                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200">
                 重新查询
             </a>
