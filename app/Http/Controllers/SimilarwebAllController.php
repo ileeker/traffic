@@ -170,7 +170,7 @@ class SimilarwebAllController extends Controller
                     ->withQueryString();
             }
             
-            return view('domains.browse', compact(
+            return view('similarweb.all', compact(
                 'domains',
                 'lastMonth', 
                 'sortBy',
@@ -460,7 +460,7 @@ class SimilarwebAllController extends Controller
             // 获取总域名数量
             $totalDomains = SimilarwebDomain::count();
 
-            return view('domains.categories', compact(
+            return view('similarweb.categories', compact(
                 'categoriesWithTranslation',
                 'totalDomains'
             ));
@@ -549,7 +549,7 @@ class SimilarwebAllController extends Controller
             $categoryTranslations = $this->getCategoryTranslations();
             $chineseName = $categoryTranslations[$decodedCategory] ?? $originalCategory;
 
-            return view('domains.category-domains', compact(
+            return view('similarweb.category-domains', compact(
                 'domains',
                 'originalCategory',
                 'decodedCategory',
