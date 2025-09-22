@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
-class RankingChangeController extends Controller
+class TrancoChangeController extends Controller
 {
     /**
      * 展示排名变化数据列表

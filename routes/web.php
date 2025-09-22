@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DomainController;
-use App\Http\Controllers\RankingChangeController;
+use App\Http\Controllers\TrancoChangeController;
 use App\Http\Controllers\SimilarwebChangeController;
 use App\Http\Controllers\DomainRankingController;
 use App\Http\Controllers\NewDomainRankingController;
@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     //     // 排名变化列表页面
     //     Route::get('/', [RankingChangeController::class, 'index'])->name('index');
     // });
-    Route::get('/tranco-ranking-change', [RankingChangeController::class, 'index'])->name('ranking-changes.index');
+    Route::get('/tranco-ranking-change', [TrancoChangeController::class, 'index'])->name('ranking-changes.index');
 
     // Similarweb EMV变化相关路由
     Route::get('/similarweb-ranking-change', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
