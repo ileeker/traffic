@@ -45,13 +45,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/domains/categories/{category}/domains', [DomainController::class, 'showCategoryDomains'])->name('domains.category.domains');
     
     // 排名变化相关路由
-    Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
-        // 排名变化列表页面
-        Route::get('/', [RankingChangeController::class, 'index'])->name('index');
-    });
+    // Route::prefix('ranking-changes')->name('ranking-changes.')->group(function () {
+    //     // 排名变化列表页面
+    //     Route::get('/', [RankingChangeController::class, 'index'])->name('index');
+    // });
+    Route::get('/tranco-ranking-change', [RankingChangeController::class, 'index'])->name('ranking-changes.index');
 
     // Similarweb EMV变化相关路由
-    Route::get('/similarweb-changes', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
+    Route::get('/similarweb-ranking-change', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
 
     // 新注册域名的排名路由
     Route::get('/new-domain-ranking', [NewDomainRankingController::class, 'index'])->name('new.domain.ranking');
