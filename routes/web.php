@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\TrancoChangeController;
 use App\Http\Controllers\SimilarwebChangeController;
-use App\Http\Controllers\DomainRankingController;
+use App\Http\Controllers\SimilarwebAllController;
 use App\Http\Controllers\NewDomainRankingController;
 use Illuminate\Support\Facades\Route;
 /*
@@ -35,8 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/domain/{domain}', [DomainController::class, 'getDomainDetail'])->name('domain.ranking');
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
     
-    // 域名数据浏览路由
-    Route::get('/domains/browse', [DomainController::class, 'browseDomains'])->name('domains.browse');
+    // Similarweb域名数据浏览路由
+    Route::get('/similarweb-all-domain', [SimilarwebAllController::class, 'index'])->name('domains.browse');
     
     // 新增：域名分类统计页面
     Route::get('/domains/categories', [DomainController::class, 'showCategories'])->name('domains.categories');
