@@ -139,7 +139,7 @@ class SimilarwebChangeController extends Controller
                 ->orderBy('record_month', 'desc')
                 ->pluck('record_month');
 
-            return view('similarweb-changes.index', compact(
+            return view('similarweb.changes', compact(
                 'similarwebChanges',
                 'sortBy',
                 'sortOrder',
