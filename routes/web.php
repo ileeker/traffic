@@ -36,16 +36,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/domains', [DomainController::class, 'getDomainsDetail'])->name('domains.detail');
     
     // Similarweb域名数据浏览路由
-    Route::get('/similarweb-all-domain', [SimilarwebAllController::class, 'index'])->name('domains.browse');
+    Route::get('/similarweb-all-domain', [SimilarwebAllController::class, 'index'])->name('similarweb.all');
     
     // Similarweb域名分类统计页面
-    Route::get('/similarweb-categories', [SimilarwebAllController::class, 'showCategories'])->name('domains.categories');
+    Route::get('/similarweb-categories', [SimilarwebAllController::class, 'showCategories'])->name('similarweb.categories');
     
     // Similarweb显示指定分类下的所有域名
     Route::get('/similarweb-categories/{category}', [SimilarwebAllController::class, 'showCategoryDomains'])->name('domains.category.domains');
     
     // Tranco排名变化相关路由
-    Route::get('/tranco-ranking-change', [TrancoChangeController::class, 'index'])->name('ranking-changes.index');
+    Route::get('/tranco-ranking-change', [TrancoChangeController::class, 'index'])->name('tranco-changes.index');
 
     // Similarweb EMV变化相关路由
     Route::get('/similarweb-ranking-change', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');

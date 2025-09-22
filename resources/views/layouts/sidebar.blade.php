@@ -14,8 +14,8 @@
             </button>
             {{-- 二级菜单 --}}
             <div x-show="open" x-transition class="mt-2 ml-4 space-y-2">
-                <a href="{{ route('ranking-changes.index') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Trending</a>
-                <!-- <a href="#" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">week 2 trend</a> -->
+                <a href="{{ route('tranco-changes.index') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Trending</a>
+                <a href="{{ route('new.domain.ranking') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">New Domains</a>
             </div>
         </div>
 
@@ -27,9 +27,9 @@
             </button>
             {{-- 二级菜单 --}}
             <div x-show="open" x-transition class="mt-2 ml-4 space-y-2">
-                <a href="{{ route('domains.browse') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">All sites</a>
+                <a href="{{ route('similarweb.all') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">All sites</a>
                 <a href="{{ route('similarweb-changes.index') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Trending</a>
-                <a href="{{ route('domains.categories') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Categories</a>
+                <a href="{{ route('similarweb.categories') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Categories</a>
             </div>
         </div>
     </nav>
