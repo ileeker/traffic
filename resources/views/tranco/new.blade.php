@@ -93,31 +93,31 @@
 
 @section('table_head')
 <tr>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         排名
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         域名 & 描述
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         分类
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         语言
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         日变化
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         周变化
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         双周变化
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         三周变化
     </th>
-    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         注册时间
     </th>
 </tr>
@@ -126,14 +126,14 @@
 @section('table_body')
 @forelse($rankings as $ranking)
 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
+    <td class="px-0 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
         @if($ranking->current_ranking)
             {{ number_format($ranking->current_ranking) }}
         @else
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4" style="min-width: 300px;">
+    <td class="px-0 py-4" style="min-width: 300px;">
         <div class="flex items-center mb-2">
             <img src="https://www.google.com/s2/favicons?domain={{ $ranking->domain }}" 
                  alt="{{ $ranking->domain }}" 
@@ -156,7 +156,7 @@
             <div class="text-xs text-gray-400">暂无描述</div>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->category)
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100">
                 {{ $ranking->category }}
@@ -165,7 +165,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->metadata && isset($ranking->metadata['language']))
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
                 {{ $ranking->metadata['language'] }}
@@ -174,7 +174,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->daily_change !== null)
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                 @if($ranking->daily_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
@@ -191,7 +191,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->week_change !== null)
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                 @if($ranking->week_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
@@ -208,7 +208,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->biweek_change !== null)
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                 @if($ranking->biweek_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
@@ -225,7 +225,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->triweek_change !== null)
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                 @if($ranking->triweek_trend === 'up') bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100
@@ -242,7 +242,7 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
         @if($ranking->registered_at)
             @php
                 $registeredAt = \Carbon\Carbon::parse($ranking->registered_at);
@@ -272,7 +272,7 @@
 </tr>
 @empty
     <tr>
-        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        <td colspan="9" class="px-0 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
             暂无数据
         </td>
     </tr>
