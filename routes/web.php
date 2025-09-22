@@ -59,8 +59,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/new-domain-ranking', [NewDomainRankingController::class, 'index'])->name('new.domain.ranking');
  
     Route::prefix('domain-rankings')->name('domain-rankings.')->group(function () {
-        Route::get('/', [NewDomainRankingController::class, 'index'])->name('index');
-        Route::get('/{id}', [NewDomainRankingController::class, 'show'])->name('show');
+        Route::get('/', [DomainRankingController::class, 'index'])->name('index');
+        Route::get('/{id}', [DomainRankingController::class, 'show'])->name('show');
     });
 
 
