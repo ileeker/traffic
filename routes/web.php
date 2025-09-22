@@ -58,10 +58,10 @@ Route::middleware('auth')->group(function () {
     // 新注册域名的排名路由
     Route::get('/new-domain-ranking', [NewDomainRankingController::class, 'index'])->name('new.domain.ranking');
  
-    // Route::prefix('domain-rankings')->name('domain-rankings.')->group(function () {
-    //     Route::get('/', [DomainRankingController::class, 'index'])->name('index');
-    //     Route::get('/{id}', [DomainRankingController::class, 'show'])->name('show');
-    // });
+    Route::prefix('domain-rankings')->name('domain-rankings.')->group(function () {
+        Route::get('/', [NewDomainRankingController::class, 'index'])->name('index');
+        Route::get('/{id}', [NewDomainRankingController::class, 'show'])->name('show');
+    });
 
 
 });
