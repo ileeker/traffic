@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NewDomainRanking;
 use Illuminate\Http\Request;
 
-class DomainRankingController extends Controller
+class NewDomainRankingController extends Controller
 {
     /**
      * 显示域名排名列表
