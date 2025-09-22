@@ -160,7 +160,7 @@ class TrancoChangeController extends Controller
             // 计算过滤后的记录数
             $filteredCount = $rankingChanges->total();
 
-            return view('ranking-changes.index', compact(
+            return view('tranco.change', compact(
                 'rankingChanges',
                 'sortBy',
                 'sortOrder',

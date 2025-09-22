@@ -40,6 +40,6 @@ class NewDomainRankingController extends Controller
         // 分页获取数据
         $rankings = $query->paginate(100)->withQueryString();
         
-        return view('domain-rankings.index', compact('rankings', 'sortField', 'sortDirection', 'search'));
+        return view('tranco.new', compact('rankings', 'sortField', 'sortDirection', 'search'));
     }
 }
