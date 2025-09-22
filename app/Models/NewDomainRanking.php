@@ -13,6 +13,7 @@ class NewDomainRanking extends Model
 
     protected $fillable = [
         'domain',
+        'category',
         'current_ranking',
         'daily_change',
         'daily_trend',
