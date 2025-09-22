@@ -5,6 +5,7 @@ use App\Http\Controllers\DomainController;
 use App\Http\Controllers\RankingChangeController;
 use App\Http\Controllers\SimilarwebChangeController;
 use App\Http\Controllers\DomainRankingController;
+use App\Http\Controllers\NewDomainRankingController;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
