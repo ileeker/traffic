@@ -19,38 +19,27 @@ class NewDomainRankingController extends Controller
         $sortBy = $request->get('sort_by', 'current_ranking');
         $sortOrder = $request->get('sort_order', 'asc');
         
-        // 获取筛选参数
-        $filterField = $request->get('filter_field');
-        $filterValue = $request->get('filter_value');
+        // 获取分类筛选参数（URL解码处理特殊字符）
+        $selectedCategory = $request->get('category');
+        if ($selectedCategory) {
+            $selectedCategory = urldecode($selectedCategory);
+        }
+        
+        // 获取所有可见记录的分类去重列表
+        $categories = NewDomainRanking::where('is_visible', true)
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->pluck('category')
+            ->sort()
+            ->values();
         
         // 构建查询
         $query = NewDomainRanking::where('is_visible', true);
         
-        // 应用筛选
-        if ($filterField && $filterValue !== null && $filterValue !== '') {
-            switch ($filterField) {
-                case 'category':
-                    $query->where('category', 'like', '%' . $filterValue . '%');
-                    break;
-                case 'current_ranking':
-                    $query->where('current_ranking', '<=', (int)$filterValue);
-                    break;
-                case 'daily_change':
-                    $query->where('daily_change', '>=', (int)$filterValue);
-                    break;
-                case 'week_change':
-                    $query->where('week_change', '>=', (int)$filterValue);
-                    break;
-                case 'biweek_change':
-                    $query->where('biweek_change', '>=', (int)$filterValue);
-                    break;
-                case 'triweek_change':
-                    $query->where('triweek_change', '>=', (int)$filterValue);
-                    break;
-                case 'registered_after':
-                    $query->where('registered_at', '>=', $filterValue);
-                    break;
-            }
+        // 应用分类筛选
+        if ($selectedCategory && $selectedCategory !== '') {
+            $query->where('category', $selectedCategory);
         }
         
         // 应用排序
@@ -68,8 +57,8 @@ class NewDomainRankingController extends Controller
             'rankings', 
             'sortBy', 
             'sortOrder', 
-            'filterField', 
-            'filterValue',
+            'categories',
+            'selectedCategory',
             'todayCount'
         ));
     }

@@ -60,29 +60,19 @@
         </div>
         
         <div class="flex items-center space-x-2">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">过滤：</label>
-            <select id="filterField" 
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">分类筛选：</label>
+            <select id="categoryFilter" 
                     class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                <option value="">无过滤</option>
-                <option value="category" {{ $filterField == 'category' ? 'selected' : '' }}>分类包含</option>
-                <option value="current_ranking" {{ $filterField == 'current_ranking' ? 'selected' : '' }}>排名 ≤</option>
-                <option value="daily_change" {{ $filterField == 'daily_change' ? 'selected' : '' }}>日变化 ≥</option>
-                <option value="week_change" {{ $filterField == 'week_change' ? 'selected' : '' }}>周变化 ≥</option>
-                <option value="biweek_change" {{ $filterField == 'biweek_change' ? 'selected' : '' }}>双周变化 ≥</option>
-                <option value="triweek_change" {{ $filterField == 'triweek_change' ? 'selected' : '' }}>三周变化 ≥</option>
-                <option value="registered_after" {{ $filterField == 'registered_after' ? 'selected' : '' }}>注册日期 ≥</option>
+                <option value="">全部分类</option>
+                @foreach($categories as $category)
+                    <option value="{{ htmlspecialchars($category, ENT_QUOTES, 'UTF-8') }}" 
+                            {{ $selectedCategory == $category ? 'selected' : '' }}>
+                        {{ $category }}
+                    </option>
+                @endforeach
             </select>
-            <input type="{{ $filterField == 'registered_after' ? 'date' : ($filterField == 'category' ? 'text' : 'number') }}" 
-                   id="filterValue"
-                   placeholder="{{ $filterField == 'registered_after' ? '选择日期' : ($filterField == 'category' ? '分类关键词' : '数值') }}"
-                   value="{{ $filterValue }}"
-                   class="w-32 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-            <button id="applyFilter" 
-                    class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm">
-                应用
-            </button>
-            @if($filterField)
-            <button id="clearFilter" 
+            @if($selectedCategory)
+            <button id="clearCategoryFilter" 
                     class="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">
                 清除
             </button>
@@ -315,73 +305,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 过滤字段变化时更新输入框类型和占位符
-    const filterField = document.getElementById('filterField');
-    const filterValue = document.getElementById('filterValue');
-    
-    filterField?.addEventListener('change', function() {
-        if (this.value === 'registered_after') {
-            // 切换到日期输入
-            filterValue.type = 'date';
-            filterValue.placeholder = '选择日期';
-            // 如果之前有数值，清空它
-            if (filterValue.value && !filterValue.value.includes('-')) {
-                filterValue.value = '';
-            }
-        } else if (this.value === 'category') {
-            // 切换到文本输入
-            filterValue.type = 'text';
-            filterValue.placeholder = '分类关键词';
-            // 如果之前有日期或数值，清空它
-            filterValue.value = '';
-        } else {
-            // 切换到数字输入
-            filterValue.type = 'number';
-            // 如果之前有日期，清空它
-            if (filterValue.value && filterValue.value.includes('-')) {
-                filterValue.value = '';
-            }
-            
-            if (this.value === 'current_ranking') {
-                filterValue.placeholder = '排名值';
-            } else if (this.value) {
-                filterValue.placeholder = '变化值';
-            } else {
-                filterValue.placeholder = '数值';
-            }
-        }
-    });
-    
-    // 页面加载时检查初始状态
-    if (filterField?.value === 'registered_after') {
-        filterValue.type = 'date';
-        filterValue.placeholder = '选择日期';
-    } else if (filterField?.value === 'category') {
-        filterValue.type = 'text';
-        filterValue.placeholder = '分类关键词';
-    }
-    
-    // 应用过滤功能
-    const applyFilter = document.getElementById('applyFilter');
-    applyFilter?.addEventListener('click', function() {
-        const field = filterField.value;
-        const value = filterValue.value;
-        
-        if (field && value) {
-            const url = new URL(window.location);
-            url.searchParams.set('filter_field', field);
-            url.searchParams.set('filter_value', value);
-            url.searchParams.delete('page'); // 重置页码
-            window.location.href = url.toString();
-        }
-    });
-    
-    // 清除过滤功能
-    const clearFilter = document.getElementById('clearFilter');
-    clearFilter?.addEventListener('click', function() {
+    // 分类筛选功能
+    const categoryFilter = document.getElementById('categoryFilter');
+    categoryFilter?.addEventListener('change', function() {
+        const category = this.value;
         const url = new URL(window.location);
-        url.searchParams.delete('filter_field');
-        url.searchParams.delete('filter_value');
+        
+        if (category) {
+            // 使用 encodeURIComponent 确保特殊字符（如 /）被正确编码
+            url.searchParams.set('category', encodeURIComponent(category));
+        } else {
+            url.searchParams.delete('category');
+        }
+        url.searchParams.delete('page'); // 重置页码
+        window.location.href = url.toString();
+    });
+    
+    // 清除分类筛选功能
+    const clearCategoryFilter = document.getElementById('clearCategoryFilter');
+    clearCategoryFilter?.addEventListener('click', function() {
+        const url = new URL(window.location);
+        url.searchParams.delete('category');
         url.searchParams.delete('page'); // 重置页码
         window.location.href = url.toString();
     });
