@@ -124,9 +124,9 @@
                  class="w-4 h-4 mr-3 rounded-sm"
                  style="margin-right:2px"
                  onerror="this.style.display='none'">
-            <a href="#" 
+            <a href="{{ route('domain.ranking', ['domain' =>$domain['domain']]) }}" 
                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
-                {{ $domain['domain'] }}
+                 {{ $domain['domain'] }}
             </a>
             <a href="https://{{ $domain['domain'] }}" target="_blank" title="访问 {{ $domain['domain'] }}">
                 <span class="text-green-500 text-sm" style="margin-left:2px">🌍</span>
