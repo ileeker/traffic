@@ -353,7 +353,7 @@ async function hideDomain(domain, element) {
     }
     
     try {
-        const response = await fetch(`/tranco-ranking-change/delete/${domain}`, {
+        const response = await fetch(`/new-domain-ranking/delete/${domain}`, {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
