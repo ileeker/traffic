@@ -6,6 +6,7 @@ use App\Http\Controllers\TrancoChangeController;
 use App\Http\Controllers\SimilarwebChangeController;
 use App\Http\Controllers\SimilarwebAllController;
 use App\Http\Controllers\NewDomainRankingController;
+use App\Http\Controllers\MonitoredDomainController;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +59,10 @@ Route::middleware('auth')->group(function () {
 
     // 新增：添加域名路由
     Route::get('/new-domain-ranking/add/{domain}', [NewDomainRankingController::class, 'addDomain'])->name('new.domain.add');
+
+    // 如果是 API 路由，建议放在 routes/api.php
+    Route::get('/monitored-domains', [MonitoredDomainController::class, 'getSimpleData'])->name('monitor.domain');
+
 });
 
 require __DIR__.'/auth.php';
