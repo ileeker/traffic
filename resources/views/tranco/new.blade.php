@@ -146,7 +146,7 @@
                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                 {{ $ranking->domain }}
             </a>
-            <span class="text-green-500 text-sm ml-1">🌐</span>
+            <span class="text-green-500 text-sm ml-1"><TrashIcon className="h-4 w-4 text-green-500 ml-1" /></span>
         </div>
         @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
             <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
