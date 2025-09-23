@@ -146,13 +146,10 @@
                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                 {{ $ranking->domain }}
             </a>
-            <span class="text-green-500 text-sm ml-1">
-            <a href="{{ route('new.domain.hide', $ranking->domain) }}" 
-                class="text-green-500 text-sm ml-1 hover:text-green-600" 
+            <span class="text-green-500 text-sm ml-1 hover:text-green-600 cursor-pointer" 
                 title="隐藏域名"
-                onclick="return confirm('确定要隐藏域名 {{ $ranking->domain }} 吗？')">
+                onclick="hideDomain('{{ $ranking->domain }}', this)">
                 🗑️
-            </a>
             </span>
         </div>
         @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
@@ -348,5 +345,34 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = url.toString();
     });
 });
+</script>
+<script>
+async function hideDomain(domain, element) {
+    if (!confirm(`确定要隐藏域名 ${domain} 吗？`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/tranco-ranking-change/delete/${domain}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        if (response.ok) {
+            // 成功后隐藏当前行或给出提示
+            element.closest('tr').style.opacity = '0.5';
+            element.innerHTML = '✓';
+            element.title = '已隐藏';
+        } else {
+            alert('操作失败，请重试');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('网络错误，请重试');
+    }
+}
 </script>
 @endpush
