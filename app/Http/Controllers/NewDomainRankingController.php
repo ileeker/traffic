@@ -11,12 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class NewDomainRankingController extends Controller
 {
-    /**
-     * 显示域名排名列表
-     *
-     * @param Request $request
-     * @return \Illuminate\View\View
-     */
+    
     public function index(Request $request)
     {
         // 获取排序参数

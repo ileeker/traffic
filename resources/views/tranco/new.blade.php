@@ -85,6 +85,8 @@
                     class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
                 <option value="current_ranking-asc" {{ $sortBy == 'current_ranking' && $sortOrder == 'asc' ? 'selected' : '' }}>排名 (1→100)</option>
                 <option value="current_ranking-desc" {{ $sortBy == 'current_ranking' && $sortOrder == 'desc' ? 'selected' : '' }}>排名 (100→1)</option>
+                <option value="created_at-desc" {{ $sortBy == 'created_at' && $sortOrder == 'desc' ? 'selected' : '' }}>创建时间 (最新优先)</option>
+                <option value="created_at-asc" {{ $sortBy == 'created_at' && $sortOrder == 'asc' ? 'selected' : '' }}>创建时间 (最旧优先)</option>
             </select>
         </div>
     </div>
