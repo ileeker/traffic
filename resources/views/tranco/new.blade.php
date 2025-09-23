@@ -151,6 +151,12 @@
                 onclick="hideDomain('{{ $ranking->domain }}', this)">
                 🗑️
             </span>
+            /
+            <span class="text-green-500 text-sm ml-1 hover:text-green-600 cursor-pointer" 
+                title="添加域名"
+                onclick="addDomain('{{ $ranking->domain }}', this)">
+                ➕
+            </span>
         </div>
         @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
             <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -368,6 +374,37 @@ async function hideDomain(domain, element) {
             element.title = '已隐藏';
         } else {
             alert('操作失败，请重试');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('网络错误，请重试');
+    }
+}
+</script>
+<script>
+async function addDomain(domain, element) {
+    if (!confirm(`确定要添加域名 ${domain} 吗？`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/new-domain-ranking/add/${domain}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        if (response.ok) {
+            // 成功后改变图标状态
+            element.innerHTML = '✓';
+            element.title = '已添加';
+            element.classList.remove('hover:text-green-600');
+            element.classList.add('text-gray-400');
+            element.onclick = null; // 禁用点击
+        } else {
+            alert('添加失败，请重试');
         }
     } catch (error) {
         console.error('Error:', error);
