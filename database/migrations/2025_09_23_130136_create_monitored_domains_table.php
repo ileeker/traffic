@@ -15,7 +15,14 @@ return new class extends Migration
     {
         Schema::create('monitored_domains', function (Blueprint $table) {
             $table->id();
+            $table->string('domain')->unique();
+            $table->text('description')->nullable();
+            $table->boolean('is_visible')->nullable()->default(null);
             $table->timestamps();
+            
+            // 索引
+            $table->index('domain');
+            $table->index('is_visible');
         });
     }
 
