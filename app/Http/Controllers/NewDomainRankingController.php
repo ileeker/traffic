@@ -88,4 +88,106 @@ class NewDomainRankingController extends Controller
             return redirect()->back()->with('error', "操作失败：" . $e->getMessage());
         }
     }
+
+    /**
+     * 添加域名到监控列表
+     *
+     * @param string $domain
+     * @return JsonResponse
+     */
+    public function addDomain(string $domain): JsonResponse
+    {
+        try {
+            // 验证域名格式
+            $validator = Validator::make(['domain' => $domain], [
+                'domain' => 'required|string|max:255|regex:/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '域名格式不正确',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // 清理域名（去除协议和www前缀）
+            $cleanDomain = $this->cleanDomain($domain);
+
+            // 检查域名是否已存在
+            $existingDomain = MonitoredDomain::where('domain', $cleanDomain)->first();
+
+            if ($existingDomain) {
+                // 如果已存在，更新 is_visible 为 true
+                $existingDomain->update(['is_visible' => true]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => '域名已存在，已更新为可见状态',
+                    'data' => [
+                        'id' => $existingDomain->id,
+                        'domain' => $existingDomain->domain,
+                        'is_visible' => $existingDomain->is_visible,
+                        'created_at' => $existingDomain->created_at,
+                        'updated_at' => $existingDomain->updated_at
+                    ]
+                ]);
+            }
+
+            // 创建新的监控域名
+            $monitoredDomain = MonitoredDomain::create([
+                'domain' => $cleanDomain,
+                'is_visible' => true,
+                'description' => null // 可以后续添加描述
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => '域名添加成功',
+                'data' => [
+                    'id' => $monitoredDomain->id,
+                    'domain' => $monitoredDomain->domain,
+                    'is_visible' => $monitoredDomain->is_visible,
+                    'description' => $monitoredDomain->description,
+                    'created_at' => $monitoredDomain->created_at,
+                    'updated_at' => $monitoredDomain->updated_at
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('添加域名失败: ' . $e->getMessage(), [
+                'domain' => $domain,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => '添加域名时发生错误，请稍后重试'
+            ], 500);
+        }
+    }
+
+    /**
+     * 清理域名格式
+     * 去除协议前缀、www前缀和尾部斜杠
+     *
+     * @param string $domain
+     * @return string
+     */
+    private function cleanDomain(string $domain): string
+    {
+        // 去除协议
+        $domain = preg_replace('/^https?:\/\//', '', $domain);
+        
+        // 去除 www 前缀
+        $domain = preg_replace('/^www\./', '', $domain);
+        
+        // 去除尾部斜杠和路径
+        $domain = preg_replace('/\/.*$/', '', $domain);
+        
+        // 转换为小写
+        $domain = strtolower(trim($domain));
+        
+        return $domain;
+    }
 }

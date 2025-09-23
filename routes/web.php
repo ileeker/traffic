@@ -47,15 +47,17 @@ Route::middleware('auth')->group(function () {
     // Tranco排名变化相关路由
     Route::get('/tranco-ranking-change', [TrancoChangeController::class, 'index'])->name('tranco-changes.index');
 
-    // 新增：隐藏域名路由
-    Route::get('/tranco-ranking-change/delete/{domain}', [NewDomainRankingController::class, 'hideDomain'])->name('new.domain.hide');
-
     // Similarweb EMV变化相关路由
     Route::get('/similarweb-ranking-change', [SimilarwebChangeController::class, 'index'])->name('similarweb-changes.index');
-
+    
     // 新注册域名的排名路由
     Route::get('/new-domain-ranking', [NewDomainRankingController::class, 'index'])->name('new.domain.ranking');
+    
+    // 新增：隐藏域名路由
+    Route::get('/new-domain-ranking/delete/{domain}', [NewDomainRankingController::class, 'hideDomain'])->name('new.domain.hide');
 
+    // 新增：添加域名路由
+    Route::get('/new-domain-ranking/add/{domain}', [NewDomainRankingController::class, 'addDomain'])->name('new.domain.add');
 });
 
 require __DIR__.'/auth.php';
