@@ -78,9 +78,11 @@ class NewDomainRankingController extends Controller
                 ->update(['is_visible' => false]);
             
             if ($updated > 0) {
-                return redirect()->back()->with('success', "域名 {$domain} 已成功隐藏");
+                return;
+                // return redirect()->back()->with('success', "域名 {$domain} 已成功隐藏");
             } else {
-                return redirect()->back()->with('error', "未找到域名 {$domain} 或该域名已被隐藏");
+                return;
+                // return redirect()->back()->with('error', "未找到域名 {$domain} 或该域名已被隐藏");
             }
         } catch (\Exception $e) {
             return redirect()->back()->with('error', "操作失败：" . $e->getMessage());
