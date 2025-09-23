@@ -118,12 +118,20 @@ class NewDomainRankingController extends Controller
             // 清理域名（去除协议和www前缀）
             $cleanDomain = $this->cleanDomain($domain);
 
+            // 从 NewDomainRanking 获取描述信息
+            $description = $this->getDescriptionFromNewDomainRanking($cleanDomain);
+
             // 检查域名是否已存在
             $existingDomain = MonitoredDomain::where('domain', $cleanDomain)->first();
 
             if ($existingDomain) {
-                // 如果已存在，更新 is_visible 为 true
-                $existingDomain->update(['is_visible' => true]);
+                // 如果已存在，更新 is_visible 为 true，并更新描述（如果有新描述）
+                $updateData = ['is_visible' => true];
+                if ($description && !$existingDomain->description) {
+                    $updateData['description'] = $description;
+                }
+                
+                $existingDomain->update($updateData);
                 
                 return response()->json([
                     'success' => true,
@@ -131,6 +139,7 @@ class NewDomainRankingController extends Controller
                     'data' => [
                         'id' => $existingDomain->id,
                         'domain' => $existingDomain->domain,
+                        'description' => $existingDomain->description,
                         'is_visible' => $existingDomain->is_visible,
                         'created_at' => $existingDomain->created_at,
                         'updated_at' => $existingDomain->updated_at
@@ -142,7 +151,7 @@ class NewDomainRankingController extends Controller
             $monitoredDomain = MonitoredDomain::create([
                 'domain' => $cleanDomain,
                 'is_visible' => true,
-                'description' => null // 可以后续添加描述
+                'description' => $description // 使用从 NewDomainRanking 获取的描述
             ]);
 
             return response()->json([
@@ -159,7 +168,7 @@ class NewDomainRankingController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            \Log::error('添加域名失败: ' . $e->getMessage(), [
+            Log::error('添加域名失败: ' . $e->getMessage(), [
                 'domain' => $domain,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -193,5 +202,33 @@ class NewDomainRankingController extends Controller
         $domain = strtolower(trim($domain));
         
         return $domain;
+    }
+
+    /**
+     * 从 NewDomainRanking 获取域名描述
+     *
+     * @param string $domain
+     * @return string|null
+     */
+    private function getDescriptionFromNewDomainRanking(string $domain): ?string
+    {
+        try {
+            $newDomainRanking = NewDomainRanking::where('domain', $domain)->first();
+            
+            if ($newDomainRanking && $newDomainRanking->metadata) {
+                // 从 metadata 中获取 description_zh
+                $metadata = $newDomainRanking->metadata;
+                return $metadata['description_zh'] ?? null;
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            Log::error('获取域名描述失败: ' . $e->getMessage(), [
+                'domain' => $domain,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return null;
+        }
     }
 }
