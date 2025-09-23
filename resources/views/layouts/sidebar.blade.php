@@ -16,6 +16,7 @@
             <div x-show="open" x-transition class="mt-2 ml-4 space-y-2">
                 <a href="{{ route('tranco-changes.index') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Trending</a>
                 <a href="{{ route('new.domain.ranking') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">New Domains</a>
+                <a href="{{ route('monitor.domain') }}" class="block px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">Monitored Domains</a>
             </div>
         </div>
 
