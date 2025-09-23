@@ -146,7 +146,14 @@
                class="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
                 {{ $ranking->domain }}
             </a>
-            <span class="text-green-500 text-sm ml-1">🗑️</span>
+            <span class="text-green-500 text-sm ml-1">
+            <a href="{{ route('new.domain.hide', $ranking->domain) }}" 
+                class="text-green-500 text-sm ml-1 hover:text-green-600" 
+                title="隐藏域名"
+                onclick="return confirm('确定要隐藏域名 {{ $ranking->domain }} 吗？')">
+                🗑️
+            </a>
+            </span>
         </div>
         @if($ranking->metadata && isset($ranking->metadata['description_zh']) && !empty($ranking->metadata['description_zh']))
             <div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
