@@ -61,7 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/new-domain-ranking/add/{domain}', [NewDomainRankingController::class, 'addDomain'])->name('new.domain.add');
 
     // 如果是 API 路由，建议放在 routes/api.php
-    Route::get('/monitored-domains', [MonitoredDomainController::class, 'getSimpleData'])->name('monitor.domain');
+    Route::get('/monitored-domains', [MonitoredDomainController::class, 'index'])->name('monitor.domain');
 
 });
 
