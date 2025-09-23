@@ -122,6 +122,9 @@
     <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         注册时间
     </th>
+    <th class="px-0 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        记录时间
+    </th>
 </tr>
 @endsection
 
@@ -281,10 +284,39 @@
             <span class="text-gray-400">-</span>
         @endif
     </td>
+    <td class="px-0 py-4 whitespace-nowrap text-sm">
+        @if($ranking->created_at)
+            @php
+                $createdAt = \Carbon\Carbon::parse($ranking->created_at);
+                $now = \Carbon\Carbon::now();
+                $diffInHours = $createdAt->diffInHours($now);
+                $diffInDays = $createdAt->diffInDays($now);
+            @endphp
+            
+            <div class="flex flex-col">
+                <span class="text-gray-900 dark:text-white text-xs">
+                    {{ $createdAt->format('Y-m-d H:i') }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                    @if($diffInHours < 1)
+                        刚刚
+                    @elseif($diffInHours < 24)
+                        {{ $diffInHours }} 小时前
+                    @elseif($diffInDays < 30)
+                        {{ $diffInDays }} 天前
+                    @else
+                        {{ round($diffInDays / 30) }} 月前
+                    @endif
+                </span>
+            </div>
+        @else
+            <span class="text-gray-400">-</span>
+        @endif
+    </td>
 </tr>
 @empty
     <tr>
-        <td colspan="9" class="px-0 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        <td colspan="10" class="px-0 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
             暂无数据
         </td>
     </tr>
