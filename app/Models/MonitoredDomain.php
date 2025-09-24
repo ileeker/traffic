@@ -14,11 +14,13 @@ class MonitoredDomain extends Model
     protected $fillable = [
         'domain',
         'description',
+        'registered_at',
         'is_visible',
     ];
 
     protected $casts = [
         'is_visible' => 'boolean',
+        'registered_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -38,5 +40,4 @@ class MonitoredDomain extends Model
     {
         return $this->hasOne(SimilarwebDomain::class, 'domain', 'domain');
     }
-
 }
