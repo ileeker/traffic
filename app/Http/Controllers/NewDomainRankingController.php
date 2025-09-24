@@ -113,17 +113,22 @@ class NewDomainRankingController extends Controller
             // 清理域名（去除协议和www前缀）
             $cleanDomain = $this->cleanDomain($domain);
 
-            // 从 NewDomainRanking 获取描述信息
-            $description = $this->getDescriptionFromNewDomainRanking($cleanDomain);
+            // 从 NewDomainRanking 获取域名信息
+            $domainInfo = $this->getDomainInfoFromNewDomainRanking($cleanDomain);
 
             // 检查域名是否已存在
             $existingDomain = MonitoredDomain::where('domain', $cleanDomain)->first();
 
             if ($existingDomain) {
-                // 如果已存在，更新 is_visible 为 true，并更新描述（如果有新描述）
+                // 如果已存在，更新 is_visible 为 true，并更新描述和注册时间（如果有新信息）
                 $updateData = ['is_visible' => true];
-                if ($description && !$existingDomain->description) {
-                    $updateData['description'] = $description;
+                
+                if ($domainInfo['description'] && !$existingDomain->description) {
+                    $updateData['description'] = $domainInfo['description'];
+                }
+                
+                if ($domainInfo['registered_at'] && !$existingDomain->registered_at) {
+                    $updateData['registered_at'] = $domainInfo['registered_at'];
                 }
                 
                 $existingDomain->update($updateData);
@@ -135,6 +140,7 @@ class NewDomainRankingController extends Controller
                         'id' => $existingDomain->id,
                         'domain' => $existingDomain->domain,
                         'description' => $existingDomain->description,
+                        'registered_at' => $existingDomain->registered_at,
                         'is_visible' => $existingDomain->is_visible,
                         'created_at' => $existingDomain->created_at,
                         'updated_at' => $existingDomain->updated_at
@@ -146,7 +152,8 @@ class NewDomainRankingController extends Controller
             $monitoredDomain = MonitoredDomain::create([
                 'domain' => $cleanDomain,
                 'is_visible' => true,
-                'description' => $description // 使用从 NewDomainRanking 获取的描述
+                'description' => $domainInfo['description'],
+                'registered_at' => $domainInfo['registered_at']
             ]);
 
             return response()->json([
@@ -155,8 +162,9 @@ class NewDomainRankingController extends Controller
                 'data' => [
                     'id' => $monitoredDomain->id,
                     'domain' => $monitoredDomain->domain,
-                    'is_visible' => $monitoredDomain->is_visible,
                     'description' => $monitoredDomain->description,
+                    'registered_at' => $monitoredDomain->registered_at,
+                    'is_visible' => $monitoredDomain->is_visible,
                     'created_at' => $monitoredDomain->created_at,
                     'updated_at' => $monitoredDomain->updated_at
                 ]
@@ -172,6 +180,48 @@ class NewDomainRankingController extends Controller
                 'success' => false,
                 'message' => '添加域名时发生错误，请稍后重试'
             ], 500);
+        }
+    }
+
+    /**
+     * 从 NewDomainRanking 获取域名信息（描述和注册时间）
+     *
+     * @param string $domain
+     * @return array
+     */
+    private function getDomainInfoFromNewDomainRanking(string $domain): array
+    {
+        try {
+            $newDomainRanking = NewDomainRanking::where('domain', $domain)->first();
+            
+            $result = [
+                'description' => null,
+                'registered_at' => null
+            ];
+            
+            if ($newDomainRanking) {
+                // 从 metadata 中获取 description_zh
+                if ($newDomainRanking->metadata) {
+                    $metadata = $newDomainRanking->metadata;
+                    $result['description'] = $metadata['description_zh'] ?? null;
+                }
+                
+                // 获取 registered_at
+                $result['registered_at'] = $newDomainRanking->registered_at;
+            }
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            Log::error('获取域名信息失败: ' . $e->getMessage(), [
+                'domain' => $domain,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return [
+                'description' => null,
+                'registered_at' => null
+            ];
         }
     }
 
