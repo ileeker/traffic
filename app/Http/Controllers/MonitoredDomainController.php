@@ -20,14 +20,15 @@ class MonitoredDomainController extends Controller
                 'domainData:domain,current_ranking',
                 'similarwebData:domain,current_emv'
             ])
-            ->select('domain', 'description', 'is_visible')
+            ->select('domain', 'description', 'registered_at')
+            ->where('is_visible', true) // 只输出is_visible为true的记录
             ->paginate(50); // 添加分页支持
 
             $formattedData = $monitoredDomains->getCollection()->map(function ($monitoredDomain) {
                 return [
                     'domain' => $monitoredDomain->domain,
                     'description' => $monitoredDomain->description,
-                    'is_visible' => $monitoredDomain->is_visible,
+                    'registered_at' => $monitoredDomain->registered_at,
                     'current_ranking' => $monitoredDomain->domainData?->current_ranking ?? null,
                     'current_emv' => $monitoredDomain->similarwebData?->current_emv ?? null,
                 ];
@@ -63,14 +64,15 @@ class MonitoredDomainController extends Controller
                 'domainData:domain,current_ranking',
                 'similarwebData:domain,current_emv'
             ])
-            ->select('domain', 'description', 'is_visible')
+            ->select('domain', 'description', 'registered_at')
+            ->where('is_visible', true) // 只输出is_visible为true的记录
             ->get();
 
             $formattedData = $monitoredDomains->map(function ($monitoredDomain) {
                 return [
                     'domain' => $monitoredDomain->domain,
                     'description' => $monitoredDomain->description,
-                    'is_visible' => $monitoredDomain->is_visible,
+                    'registered_at' => $monitoredDomain->registered_at,
                     'current_ranking' => $monitoredDomain->domainData?->current_ranking ?? null,
                     'current_emv' => $monitoredDomain->similarwebData?->current_emv ?? null,
                 ];

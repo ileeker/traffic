@@ -58,16 +58,6 @@
                 GO
             </button>
         </div>
-        
-        <div class="flex items-center space-x-2">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选：</label>
-            <select id="visibilityFilter" 
-                    class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                <option value="">全部域名</option>
-                <option value="1">仅显示可见</option>
-                <option value="0">仅显示隐藏</option>
-            </select>
-        </div>
 
         <div class="flex items-center space-x-2">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">排序：</label>
@@ -79,6 +69,8 @@
                 <option value="ranking-desc">排名 (100→1)</option>
                 <option value="emv-desc">EMV 高→低</option>
                 <option value="emv-asc">EMV 低→高</option>
+                <option value="registered-desc">注册时间 (新→旧)</option>
+                <option value="registered-asc">注册时间 (旧→新)</option>
             </select>
         </div>
     </div>
@@ -92,6 +84,9 @@
     </th>
     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         描述
+    </th>
+    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+        注册时间
     </th>
     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
         当前排名
@@ -116,7 +111,7 @@
 </tr>
 @else
 @forelse($monitoredDomains as $domain)
-<tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-visibility="{{ $domain['is_visible'] }}">
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-700" data-registered="{{ $domain['registered_at'] ? $domain['registered_at']->format('Y-m-d') : '' }}">
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="flex items-center">
             <img src="https://www.google.com/s2/favicons?domain={{ $domain['domain'] }}" 
@@ -129,13 +124,22 @@
                  {{ $domain['domain'] }}
             </a>
             <a href="https://{{ $domain['domain'] }}" target="_blank" title="访问 {{ $domain['domain'] }}">
-                <span class="text-green-500 text-sm" style="margin-left:2px">🌍</span>
+                <span class="text-green-500 text-sm" style="margin-left:2px">🌐</span>
             </a>
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900 dark:text-white max-w-xs truncate" title="{{ $domain['description'] }}">
             {{ $domain['description'] ?? '-' }}
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900 dark:text-white">
+            @if($domain['registered_at'])
+                {{ $domain['registered_at']->format('Y-m-d') }}
+            @else
+                <span class="text-gray-400">-</span>
+            @endif
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -150,7 +154,19 @@
     <td class="px-6 py-4 whitespace-nowrap text-sm">
         @if($domain['current_emv'])
             <div class="text-sm font-medium text-gray-900 dark:text-white">
-                ${{ number_format($domain['current_emv']) }}
+                @php
+                $emv = $domain['current_emv'];
+                if ($emv >= 1000000000) {
+                    $formatted = number_format($emv / 1000000000, 1) . 'B';
+                } elseif ($emv >= 1000000) {
+                    $formatted = number_format($emv / 1000000, 1) . 'M';
+                } elseif ($emv >= 1000) {
+                    $formatted = number_format($emv / 1000, 1) . 'K';
+                } else {
+                    $formatted = number_format($emv);
+                }
+                @endphp
+                {{ $formatted }}
             </div>
         @else
             <span class="text-gray-400">-</span>
@@ -189,28 +205,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 可见性筛选
-    const visibilityFilter = document.getElementById('visibilityFilter');
-    visibilityFilter.addEventListener('change', function() {
-        const filterValue = this.value;
-        const rows = document.querySelectorAll('tbody tr[data-visibility]');
-        
-        rows.forEach(row => {
-            if (filterValue === '') {
-                row.style.display = '';
-            } else {
-                const visibility = row.getAttribute('data-visibility');
-                row.style.display = visibility === filterValue ? '' : 'none';
-            }
-        });
-    });
-
     // 排序功能
     const sortSelect = document.getElementById('sortSelect');
     sortSelect.addEventListener('change', function() {
         const [field, order] = this.value.split('-');
         const tbody = document.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr[data-visibility]'));
+        const rows = Array.from(tbody.querySelectorAll('tr[data-registered]'));
         
         rows.sort((a, b) => {
             let valueA, valueB;
@@ -227,10 +227,25 @@ document.addEventListener('DOMContentLoaded', function() {
                         parseInt(b.querySelector('td:nth-child(4) span').textContent.replace(/[#,]/g, '')) : 999999;
                     break;
                 case 'emv':
-                    valueA = a.querySelector('td:nth-child(5) div') ? 
-                        parseInt(a.querySelector('td:nth-child(5) div').textContent.replace(/[$,]/g, '')) : 0;
-                    valueB = b.querySelector('td:nth-child(5) div') ? 
-                        parseInt(b.querySelector('td:nth-child(5) div').textContent.replace(/[$,]/g, '')) : 0;
+                    const getEmvValue = (row) => {
+                        const emvElement = row.querySelector('td:nth-child(5) div');
+                        if (!emvElement) return 0;
+                        
+                        const text = emvElement.textContent;
+                        if (text === '-') return 0;
+                        
+                        const value = parseFloat(text);
+                        if (text.includes('B')) return value * 1000000000;
+                        if (text.includes('M')) return value * 1000000;
+                        if (text.includes('K')) return value * 1000;
+                        return value;
+                    };
+                    valueA = getEmvValue(a);
+                    valueB = getEmvValue(b);
+                    break;
+                case 'registered':
+                    valueA = a.getAttribute('data-registered') || '0000-00-00';
+                    valueB = b.getAttribute('data-registered') || '0000-00-00';
                     break;
                 default:
                     return 0;
